@@ -1,0 +1,31 @@
+{
+  "name": "telegram-bot-gggs",
+  "version": "1.0.0",
+  "description": "telegram-bot-gggs",
+  "main": "dist/app.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc-watch --onSuccess \"node dist/app.js\"",
+    "lint": "eslint src/**/*.ts",
+    "start": "node dist/app.js"
+  },
+  "author": "bobrosoft",
+  "license": "ISC",
+  "dependencies": {
+    "telegraf": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.5",
+    "@typescript-eslint/eslint-plugin": "^5.8.0",
+    "@typescript-eslint/parser": "^5.8.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^7.2.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.5.1",
+    "tsc-watch": "^4.6.0",
+    "typescript": "^4.5.4"
+  },
+  "engines": {
+    "node": ">= 14.0.0"
+  }
+}
