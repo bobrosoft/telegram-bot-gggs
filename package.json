@@ -2,10 +2,10 @@
   "name": "telegram-bot-gggs",
   "version": "1.0.0",
   "description": "telegram-bot-gggs",
-  "main": "dist/app.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc-watch --onSuccess \"node dist/app.js\"",
+    "dev": "tsc-watch --onSuccess \"node dist/index.js\"",
     "lint": "eslint src/**/*.ts",
     "start": "node dist/app.js"
   },

@@ -1,15 +1,26 @@
-import dotenv from 'dotenv';
 import {Telegraf} from 'telegraf';
+import {Config} from './models/config.model';
+import {provideConfig} from './services/config/config.provider';
 
-dotenv.config();
+export class App {
+  protected bot: Telegraf;
 
-const bot = new Telegraf(String(process.env.BOT_TOKEN));
-bot.start(ctx => ctx.reply('Welcome'));
-bot.help(ctx => ctx.reply('Send me a sticker'));
-bot.on('sticker', ctx => ctx.reply('👍'));
-bot.hears('hi', ctx => ctx.reply('Hey there'));
-bot.launch();
+  constructor(
+    //
+    protected config: Config = provideConfig(),
+  ) {
+    this.bot = new Telegraf(config.botToken);
+    this.bot.start(ctx => ctx.reply('Welcome'));
+    this.bot.help(ctx => ctx.reply('Send me a sticker'));
+    this.bot.on('sticker', ctx => ctx.reply('👍'));
+    this.bot.hears('hi', ctx => ctx.reply('Hey there'));
+  }
 
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+  launch(): Promise<void> {
+    return this.bot.launch();
+  }
+
+  stop(reason?: string) {
+    this.bot.stop(reason);
+  }
+}
