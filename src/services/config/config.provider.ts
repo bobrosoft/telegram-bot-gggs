@@ -6,5 +6,6 @@ export function provideConfig(environment = 'production'): Config {
 
   return {
     botToken: String(process.env.BOT_TOKEN),
+    chatLink: 'https://t.me/gggs_glazov',
   };
 }

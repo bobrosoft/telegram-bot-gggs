@@ -1,26 +1,39 @@
+import i18next, {TFunction} from 'i18next';
 import {Telegraf} from 'telegraf';
+import {translationsRU} from './i18n/ru';
 import {Config} from './models/config.model';
+import {CommandsService} from './services/commands/commands.service';
+import {BaseService} from './services/common.service';
 import {provideConfig} from './services/config/config.provider';
 
 export class App {
+  protected t: TFunction; // i18n translation function
   protected bot: Telegraf;
+  protected services: BaseService[] = [];
 
   constructor(
     //
     protected config: Config = provideConfig(),
   ) {
+    // Init i18n
+    i18next.init({lng: 'ru'}).then();
+    i18next.addResourceBundle('ru', 'translation', translationsRU, true, true);
+    this.t = i18next.t;
+
+    // Create bot
     this.bot = new Telegraf(config.botToken);
-    this.bot.start(ctx => ctx.reply('Welcome'));
-    this.bot.help(ctx => ctx.reply('Send me a sticker'));
-    this.bot.on('sticker', ctx => ctx.reply('👍'));
-    this.bot.hears('hi', ctx => ctx.reply('Hey there'));
+
+    // Register all services
+    this.services.push(new CommandsService(this.t, this.config, this.bot));
   }
 
-  launch(): Promise<void> {
-    return this.bot.launch();
+  async start(): Promise<void> {
+    await this.bot.launch();
+    await Promise.all(this.services.map(s => s.start()));
   }
 
-  stop(reason?: string) {
+  async stop(reason?: string) {
     this.bot.stop(reason);
+    await Promise.all(this.services.map(s => s.stop()));
   }
 }
