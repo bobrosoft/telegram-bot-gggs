@@ -23,6 +23,7 @@ export class CommandsService extends BaseService {
   }
 
   protected async onStart(ctx: Context) {
+    console.log(`chatId: ${ctx.chat?.id}`);
     await ctx.replyWithHTML(this.t('CommandsService.startMsg', {link: this.config.chatLink}));
   }
 }

@@ -7,17 +7,20 @@
     "build": "tsc",
     "dev": "tsc-watch --onSuccess \"node dist/index.js\"",
     "lint": "eslint src/**/*.ts",
-    "start": "node dist/app.js"
+    "server:staging": "npm run build && node dist/index.js",
+    "server:production": "export ENVIRONMENT=production && npm run build && node dist/index.js"
   },
   "author": "bobrosoft",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^10.0.0",
     "i18next": "^21.6.4",
+    "node-fetch": "^2.6.6",
     "telegraf": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^17.0.5",
+    "@types/node-fetch": "^2.5.12",
     "@typescript-eslint/eslint-plugin": "^5.8.0",
     "@typescript-eslint/parser": "^5.8.0",
     "eslint": "^7.32.0",

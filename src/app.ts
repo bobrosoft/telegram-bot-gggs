@@ -3,6 +3,7 @@ import {Telegraf} from 'telegraf';
 import {translationsRU} from './i18n/ru';
 import {Config} from './models/config.model';
 import {CommandsService} from './services/commands/commands.service';
+import {VkReposterService} from './services/vk-reposter/vk-reposter.service';
 import {BaseService} from './services/common.service';
 import {provideConfig} from './services/config/config.provider';
 
@@ -13,7 +14,7 @@ export class App {
 
   constructor(
     //
-    protected config: Config = provideConfig(),
+    protected config: Config = provideConfig(process.env.ENVIRONMENT as any),
   ) {
     // Init i18n
     i18next.init({lng: 'ru'}).then();
@@ -25,6 +26,7 @@ export class App {
 
     // Register all services
     this.services.push(new CommandsService(this.t, this.config, this.bot));
+    this.services.push(new VkReposterService(this.t, this.config, this.bot));
   }
 
   async start(): Promise<void> {

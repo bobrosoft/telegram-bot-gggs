@@ -4,6 +4,7 @@
     "esModuleInterop": true,
     "target": "es2020",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "strict": true,
     "sourceMap": true,
     "lib": ["ES2020"],
