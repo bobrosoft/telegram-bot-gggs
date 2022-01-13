@@ -5,6 +5,8 @@ import {URLSearchParams} from 'url';
 import {Config} from '../../models/config.model';
 import {VKAttachment, VkPost} from '../../models/vk-post.model';
 import {BaseService} from '../common.service';
+import testData from './testData.json';
+import {stopWords} from './stop-words';
 
 export class VkReposterService extends BaseService {
   protected timer?: NodeJS.Timeout;
@@ -25,6 +27,8 @@ export class VkReposterService extends BaseService {
   async start(): Promise<void> {
     this.timer = setInterval(this.checkForNewPosts.bind(this), 5 * 60 * 1000);
     this.checkForNewPosts().then();
+
+    this.bot.command('test-repost', this.onTestRepost.bind(this));
   }
 
   async stop(): Promise<void> {
@@ -113,8 +117,17 @@ export class VkReposterService extends BaseService {
       return false;
     }
 
+    // Skip reposts
+    if (post.copy_history) {
+      return false;
+    }
+
     if (isGroupPost) {
-      // TODO: Check for stop words
+      // Check for stop-words
+      const preparedPostText = post.text.toLocaleLowerCase('ru-RU').trim();
+      if (stopWords.find(word => preparedPostText.match(word))) {
+        return false;
+      }
     }
 
     return true;
@@ -156,6 +169,10 @@ export class VkReposterService extends BaseService {
       debugText: post.text.substr(0, 20).replace(/[\n\t]/g, ''),
       imagePreviewUrl: photoUrl,
     };
+  }
+
+  protected async onTestRepost() {
+    await this.processPostsData(testData);
   }
 
   protected log(message: string) {

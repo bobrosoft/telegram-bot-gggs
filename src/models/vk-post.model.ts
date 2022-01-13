@@ -7,7 +7,8 @@ export interface VkPost {
   post_type: 'post';
   text: string;
   is_pinned: boolean;
-  attachments: VKAttachment[];
+  attachments?: VKAttachment[];
+  copy_history?: any;
 }
 
 export type VKAttachment = {type: 'photo'; photo: VkPhoto} | {type: 'video'; video: VkVideo};
