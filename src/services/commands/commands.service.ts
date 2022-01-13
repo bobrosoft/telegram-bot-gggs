@@ -2,15 +2,19 @@ import {TFunction} from 'i18next';
 import {Telegraf, Context} from 'telegraf';
 import {Config} from '../../models/config.model';
 import {BaseService} from '../common.service';
+import {LoggerService} from '../logger/logger.service';
 
 export class CommandsService extends BaseService {
+  protected name = 'CommandsService';
+
   constructor(
     //
+    protected logger: LoggerService,
     protected t: TFunction,
     protected config: Config,
     protected bot: Telegraf,
   ) {
-    super();
+    super(logger);
     this.bot.command('start', this.onStart.bind(this));
   }
 

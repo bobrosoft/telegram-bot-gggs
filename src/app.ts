@@ -3,6 +3,7 @@ import {Telegraf} from 'telegraf';
 import {translationsRU} from './i18n/ru';
 import {Config} from './models/config.model';
 import {CommandsService} from './services/commands/commands.service';
+import {LoggerService} from './services/logger/logger.service';
 import {VkReposterService} from './services/vk-reposter/vk-reposter.service';
 import {BaseService} from './services/common.service';
 import {provideConfig} from './services/config/config.provider';
@@ -24,9 +25,12 @@ export class App {
     // Create bot
     this.bot = new Telegraf(config.botToken);
 
+    // Create logger
+    const logger = new LoggerService();
+
     // Register all services
-    this.services.push(new CommandsService(this.t, this.config, this.bot));
-    this.services.push(new VkReposterService(this.t, this.config, this.bot));
+    this.services.push(new CommandsService(logger, this.t, this.config, this.bot));
+    this.services.push(new VkReposterService(logger, this.t, this.config, this.bot));
   }
 
   async start(): Promise<void> {

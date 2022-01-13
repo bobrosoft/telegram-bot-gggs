@@ -4,4 +4,5 @@ export const stopWords: Array<string | RegExp> = [
   'требуются',
   'detali18',
   'колибри',
+  'магазин',
 ];

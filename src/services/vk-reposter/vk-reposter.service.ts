@@ -5,21 +5,24 @@ import {URLSearchParams} from 'url';
 import {Config} from '../../models/config.model';
 import {VKAttachment, VkPost} from '../../models/vk-post.model';
 import {BaseService} from '../common.service';
+import {LoggerService} from '../logger/logger.service';
 import testData from './testData.json';
 import {stopWords} from './stop-words';
 
 export class VkReposterService extends BaseService {
+  protected name = 'VkReposterService';
   protected timer?: NodeJS.Timeout;
   protected accessToken: string;
   protected recentPostIds: number[] = [];
 
   constructor(
     //
+    protected logger: LoggerService,
     protected t: TFunction,
     protected config: Config,
     protected bot: Telegraf,
   ) {
-    super();
+    super(logger);
 
     this.accessToken = this.config.vkAccessToken;
   }
@@ -173,10 +176,6 @@ export class VkReposterService extends BaseService {
 
   protected async onTestRepost() {
     await this.processPostsData(testData);
-  }
-
-  protected log(message: string) {
-    console.debug(`${new Date().toISOString()} [VkReposterService] ${message}`);
   }
 }
 
