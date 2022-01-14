@@ -66,8 +66,6 @@ export class VkReposterService extends BaseService {
   protected async processPostsData(data: any) {
     const posts: VkPost[] = data.response.items.reverse() as any;
 
-    // TODO: Need to filter out posts which we already posted recently to not repeat them
-
     const authors: Author[] = [
       ...(data.response.profiles || []).map((p: any) => ({
         id: p.id,
@@ -92,11 +90,11 @@ export class VkReposterService extends BaseService {
       for (const chatId of this.config.chatsForVkReposts) {
         if (message.imagePreviewUrl) {
           await this.bot.telegram.sendPhoto(chatId, message.imagePreviewUrl, {
-            caption: message.text,
+            caption: message.text.substr(0, 1010),
             parse_mode: 'HTML',
           });
         } else {
-          await this.bot.telegram.sendMessage(chatId, message.text, {
+          await this.bot.telegram.sendMessage(chatId, message.text.substr(0, 4000), {
             parse_mode: 'HTML',
             disable_web_page_preview: true,
           });
