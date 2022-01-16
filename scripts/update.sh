@@ -2,9 +2,8 @@
 
 set -e
 
-SCRIPT=`realpath $0`
-SCRIPTPATH=`dirname $SCRIPT`
-cd $SCRIPTPATH
+SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $SCRIPT_PATH
 
 git pull
 sudo systemctl restart telegram-bot-gggs
