@@ -2,7 +2,7 @@
 Description=telegram-bot-gggs
 
 [Service]
-ExecStart="npm run server:production"
+ExecStart=/bin/bash -c "source ~/.bash_profile; cd /var/www/telegram-bot-gggs; npm run server:production"
 Restart=always
 User=opc
 Group=opc
