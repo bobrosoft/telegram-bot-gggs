@@ -5,4 +5,7 @@ export const stopWords: Array<string | RegExp> = [
   'detali18',
   'колибри',
   'магазин',
+  'озон',
+  'заказывай',
+  'jcar',
 ];
