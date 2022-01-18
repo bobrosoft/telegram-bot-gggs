@@ -8,4 +8,8 @@ export const stopWords: Array<string | RegExp> = [
   'озон',
   'заказывай',
   'jcar',
+  'битые',
+  'после дтп',
+  'в день обращения',
+  'дрова',
 ];
