@@ -18,4 +18,5 @@ export const stopWords: Array<string | RegExp> = [
   'дрова',
   'учи.ру',
   'пятнашки',
+  'роллы',
 ];
