@@ -2,6 +2,7 @@ export const stopWords: Array<string | RegExp> = [
   //
   'вакансия',
   'требуются',
+  'наш телеграм',
   //
   'битые',
   'после дтп',
