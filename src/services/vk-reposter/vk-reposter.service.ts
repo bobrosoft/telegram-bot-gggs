@@ -7,7 +7,7 @@ import {VKAttachment, VkPost} from '../../models/vk-post.model';
 import {BaseService} from '../common.service';
 import {LoggerService} from '../logger/logger.service';
 import testData from './testData.json';
-import {stopWords} from './stop-words';
+import {commonStopWords, groupStopWords} from './stop-words';
 
 export class VkReposterService extends BaseService {
   protected name = 'VkReposterService';
@@ -31,7 +31,7 @@ export class VkReposterService extends BaseService {
     this.timer = setInterval(this.checkForNewPosts.bind(this), 5 * 60 * 1000);
     this.checkForNewPosts().then();
 
-    this.bot.command('test-repost', this.onTestRepost.bind(this));
+    this.bot.command('testrepost', this.onTestRepost.bind(this));
   }
 
   async stop(): Promise<void> {
@@ -63,7 +63,7 @@ export class VkReposterService extends BaseService {
     });
   }
 
-  protected async processPostsData(data: any) {
+  protected async processPostsData(data: any, skipOldPosts = true) {
     const posts: VkPost[] = data.response.items.reverse() as any;
 
     const authors: Author[] = [
@@ -80,7 +80,7 @@ export class VkReposterService extends BaseService {
     ];
 
     const messages = posts
-      .filter(post => this.isNewPost(post))
+      .filter(post => (skipOldPosts ? this.isNewPost(post) : true))
       .filter(post => this.isPostAllowed(post))
       .map(post => this.convertPostToMessage(post, authors));
 
@@ -123,10 +123,15 @@ export class VkReposterService extends BaseService {
       return false;
     }
 
+    // Check for group stop-words
+    const preparedPostText = post.text.toLocaleLowerCase('ru-RU').trim();
+    if (commonStopWords.find(word => preparedPostText.match(word))) {
+      return false;
+    }
+
     if (isGroupPost) {
-      // Check for stop-words
-      const preparedPostText = post.text.toLocaleLowerCase('ru-RU').trim();
-      if (stopWords.find(word => preparedPostText.match(word))) {
+      // Check for group stop-words
+      if (groupStopWords.find(word => preparedPostText.match(word))) {
         return false;
       }
     }
@@ -173,7 +178,7 @@ export class VkReposterService extends BaseService {
   }
 
   protected async onTestRepost() {
-    await this.processPostsData(testData);
+    await this.processPostsData(testData, false);
   }
 }
 

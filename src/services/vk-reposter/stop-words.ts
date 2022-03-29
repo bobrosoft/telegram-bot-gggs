@@ -1,4 +1,11 @@
-export const stopWords: Array<string | RegExp> = [
+export const commonStopWords: Array<string | RegExp> = [
+  //
+  'закажи',
+  'дебетовую',
+  'получи.*бонус',
+];
+
+export const groupStopWords: Array<string | RegExp> = [
   //
   'вакансия',
   'требуются',
@@ -20,4 +27,7 @@ export const stopWords: Array<string | RegExp> = [
   'учи.ру',
   'пятнашки',
   'роллы',
+  'химчистка',
+  'химчистку',
+  'поликарбонат',
 ];
