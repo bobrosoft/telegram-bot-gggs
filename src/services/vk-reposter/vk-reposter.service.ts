@@ -129,7 +129,13 @@ export class VkReposterService extends BaseService {
       return false;
     }
 
+    // Check if that's a group post to apply special rules
     if (isGroupPost) {
+      // Skip group posts without text
+      if (preparedPostText === '') {
+        return false;
+      }
+
       // Check for group stop-words
       if (groupStopWords.find(word => preparedPostText.match(word))) {
         return false;
