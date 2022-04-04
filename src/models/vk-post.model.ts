@@ -11,7 +11,10 @@ export interface VkPost {
   copy_history?: any;
 }
 
-export type VKAttachment = {type: 'photo'; photo: VkPhoto} | {type: 'video'; video: VkVideo};
+export type VKAttachment =
+  | {type: 'photo'; photo: VkPhoto}
+  | {type: 'video'; video: VkVideo}
+  | {type: 'doc'; doc: VkDoc};
 
 export interface VkPhoto {
   album_id: number;
@@ -42,4 +45,20 @@ export interface VkVideo {
     height: number;
     with_padding: boolean;
   }>;
+}
+
+export interface VkDoc {
+  id: number;
+  title: string;
+  url: string;
+  preview: {
+    photo: {
+      sizes: Array<{
+        type: 'm' | 'o' | 'p' | 'q' | 'r' | 's' | 'x';
+        src: string;
+        width: number;
+        height: number;
+      }>;
+    };
+  };
 }

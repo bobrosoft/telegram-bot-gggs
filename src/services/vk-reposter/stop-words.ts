@@ -2,7 +2,7 @@ export const commonStopWords: Array<string | RegExp> = [
   //
   'закажи',
   'дебетовую',
-  'получи.*бонус',
+  /получи.*бонус/gm,
 ];
 
 export const groupStopWords: Array<string | RegExp> = [
@@ -30,4 +30,7 @@ export const groupStopWords: Array<string | RegExp> = [
   'химчистка',
   'химчистку',
   'поликарбонат',
+  'такси',
+  'vr-zone',
+  'арена виртуальной',
 ];

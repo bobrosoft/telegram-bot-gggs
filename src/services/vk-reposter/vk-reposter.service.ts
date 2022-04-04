@@ -147,8 +147,8 @@ export class VkReposterService extends BaseService {
 
   protected convertPostToMessage(post: VkPost, authors: Author[]): Message {
     const author = authors.find(a => a.id === post.from_id) || authors.find(a => a.id === post.owner_id);
-    const firstAttachment: VKAttachment | undefined = (post.attachments || []).find(
-      a => a.type === 'photo' || a.type === 'video',
+    const firstAttachment: VKAttachment | undefined = (post.attachments || []).find(a =>
+      ['photo', 'video', 'doc'].includes(a.type),
     );
     const videoAttachment: VKAttachment | undefined = (post.attachments || []).find(a => a.type === 'video');
 
@@ -173,6 +173,8 @@ export class VkReposterService extends BaseService {
       if (photoUrl.match('thumbs/video_x.png')) {
         photoUrl = undefined;
       }
+    } else if (firstAttachment?.type === 'doc') {
+      photoUrl = firstAttachment.doc.preview.photo?.sizes.find(s => ['x', 'y', 'z'].includes(s.type))?.src;
     }
 
     return {
