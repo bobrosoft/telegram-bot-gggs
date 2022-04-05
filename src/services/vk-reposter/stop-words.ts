@@ -33,4 +33,6 @@ export const groupStopWords: Array<string | RegExp> = [
   'такси',
   'vr-zone',
   'арена виртуальной',
+  'подписывайся',
+  /club\d+/gm,
 ];
