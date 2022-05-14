@@ -10,6 +10,7 @@ export const commonStopWords: Array<string | RegExp> = [
 export const groupStopWords: Array<string | RegExp> = [
   //
   /club\d+/gm,
+  /public\d+/gm,
   'подписывайся',
   'вступайте',
   'объявления',
@@ -45,4 +46,6 @@ export const groupStopWords: Array<string | RegExp> = [
   'vr-zone',
   'арена виртуальной',
   'woldemar',
+  'cталькомплект',
+  'er.ru',
 ];
