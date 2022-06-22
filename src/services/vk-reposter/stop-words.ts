@@ -53,4 +53,6 @@ export const groupStopWords: Array<string | RegExp> = [
   'er.ru',
   'нечкино',
   'концерт',
+  'avtoroom',
+  'график работы',
 ];
