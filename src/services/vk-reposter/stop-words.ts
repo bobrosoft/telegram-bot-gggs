@@ -5,6 +5,13 @@ export const commonStopWords: Array<string | RegExp> = [
   /получи.*бонус/gm,
   'za',
   'zа',
+  
+  'выборы',
+  'кпрф',
+  'справедливая',
+  'бречалов',
+  'единая',
+  'единую',
 ];
 
 export const groupStopWords: Array<string | RegExp> = [
