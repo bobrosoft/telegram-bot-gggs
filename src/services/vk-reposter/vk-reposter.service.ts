@@ -28,8 +28,10 @@ export class VkReposterService extends BaseService {
   }
 
   async start(): Promise<void> {
-    this.timer = setInterval(this.checkForNewPosts.bind(this), 5 * 60 * 1000);
-    this.checkForNewPosts().then();
+    this.checkForNewPosts(true).then();
+    this.timer = setInterval(() => {
+      this.checkForNewPosts().then();
+    }, 5 * 60 * 1000);
 
     this.bot.command('testrepost', this.onTestRepost.bind(this));
   }
@@ -40,7 +42,7 @@ export class VkReposterService extends BaseService {
     }
   }
 
-  protected async checkForNewPosts() {
+  protected async checkForNewPosts(isFirstRun = false) {
     this.log('checkForNewPosts');
 
     const data = await fetch('https://api.vk.com/method/wall.get', {
@@ -51,6 +53,11 @@ export class VkReposterService extends BaseService {
         count: 3,
       }),
     }).then(r => r.json());
+
+    // Need to fill in recentPostIds for the first run to not post them after bot restart
+    if (isFirstRun) {
+      (data.response.items as VkPost[]).forEach(post => this.recentPostIds.push(post.id));
+    }
 
     await this.processPostsData(data);
   }
