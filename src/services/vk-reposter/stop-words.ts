@@ -40,6 +40,7 @@ export const groupStopWords: Array<string | RegExp> = [
   'detali18',
   'колибри',
   'магазин',
+  'прайс',
   'озон',
   'заказывай',
   'корпорация центр',
@@ -69,4 +70,5 @@ export const groupStopWords: Array<string | RegExp> = [
   'автомир',
   'automir',
   'ситилинк',
+  'косметолог',
 ];
