@@ -1,21 +1,24 @@
 import {TFunction} from 'i18next';
 import {Telegraf, Context} from 'telegraf';
+import {autoInjectable, inject} from 'tsyringe';
+import {ConfigToken, TFunctionToken} from '../../misc/injection-tokens';
 import {Config} from '../../models/config.model';
-import {BaseService} from '../common.service';
+import {BaseCommandService} from '../base-command.service';
 import {LoggerService} from '../logger/logger.service';
 
-export class CommandsService extends BaseService {
+@autoInjectable()
+export class CommandsService extends BaseCommandService {
   protected name = 'CommandsService';
 
   constructor(
     //
     protected logger: LoggerService,
-    protected t: TFunction,
-    protected config: Config,
+    @inject(TFunctionToken) protected t: TFunction,
+    @inject(ConfigToken) protected config: Config,
     protected bot: Telegraf,
   ) {
-    super(logger);
-    this.bot.command('start', this.onStart.bind(this));
+    super(logger, bot);
+    this.listenForCommand(['start'], this.onStart.bind(this));
   }
 
   async start(): Promise<void> {

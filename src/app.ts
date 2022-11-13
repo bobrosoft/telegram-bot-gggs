@@ -1,36 +1,51 @@
 import i18next, {TFunction} from 'i18next';
+import fetch from 'node-fetch';
 import {Telegraf} from 'telegraf';
+import {container} from 'tsyringe';
 import {translationsRU} from './i18n/ru';
+import {ConfigToken, FetchToken, TFunctionToken} from './misc/injection-tokens';
 import {Config} from './models/config.model';
 import {CommandsService} from './services/commands/commands.service';
 import {LoggerService} from './services/logger/logger.service';
 import {VkReposterService} from './services/vk-reposter/vk-reposter.service';
-import {BaseService} from './services/common.service';
+import {BaseService} from './services/base.service';
 import {provideConfig} from './services/config/config.provider';
 
 export class App {
-  protected t: TFunction; // i18n translation function
-  protected bot: Telegraf;
   protected services: BaseService[] = [];
+
+  protected get bot(): Telegraf {
+    return container.resolve(Telegraf);
+  }
+
+  protected get logger(): LoggerService {
+    return container.resolve(LoggerService);
+  }
 
   constructor(
     //
     protected config: Config = provideConfig(process.env.ENVIRONMENT as any),
   ) {
+    // Register config
+    container.registerInstance(ConfigToken, config);
+
     // Init i18n
     i18next.init({lng: 'ru'}).then();
     i18next.addResourceBundle('ru', 'translation', translationsRU, true, true);
-    this.t = i18next.t;
+    container.registerInstance(TFunctionToken, i18next.t);
 
     // Create bot
-    this.bot = new Telegraf(config.botToken);
+    container.registerInstance(Telegraf, new Telegraf(config.botToken));
 
     // Create logger
-    const logger = new LoggerService();
+    container.registerSingleton(LoggerService);
+
+    // Register fetch
+    container.registerInstance(FetchToken, fetch);
 
     // Register all services
-    this.services.push(new CommandsService(logger, this.t, this.config, this.bot));
-    this.services.push(new VkReposterService(logger, this.t, this.config, this.bot));
+    this.services.push(container.resolve(CommandsService));
+    this.services.push(container.resolve(VkReposterService));
   }
 
   async start(): Promise<void> {

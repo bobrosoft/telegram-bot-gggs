@@ -1,15 +1,18 @@
 import {TFunction} from 'i18next';
 import fetch from 'node-fetch';
 import {Telegraf} from 'telegraf';
+import {autoInjectable, inject} from 'tsyringe';
 import {URLSearchParams} from 'url';
+import {ConfigToken, TFunctionToken} from '../../misc/injection-tokens';
 import {Config} from '../../models/config.model';
 import {VKAttachment, VkPost} from '../../models/vk-post.model';
-import {BaseService} from '../common.service';
+import {BaseCommandService} from '../base-command.service';
 import {LoggerService} from '../logger/logger.service';
 import testData from './testData.json';
 import {commonStopWords, groupStopWords} from './stop-words';
 
-export class VkReposterService extends BaseService {
+@autoInjectable()
+export class VkReposterService extends BaseCommandService {
   protected name = 'VkReposterService';
   protected timer?: NodeJS.Timeout;
   protected accessToken: string;
@@ -18,11 +21,11 @@ export class VkReposterService extends BaseService {
   constructor(
     //
     protected logger: LoggerService,
-    protected t: TFunction,
-    protected config: Config,
+    @inject(TFunctionToken) protected t: TFunction,
+    @inject(ConfigToken) protected config: Config,
     protected bot: Telegraf,
   ) {
-    super(logger);
+    super(logger, bot);
 
     this.accessToken = this.config.vkAccessToken;
   }
@@ -33,7 +36,7 @@ export class VkReposterService extends BaseService {
       this.checkForNewPosts().then();
     }, 5 * 60 * 1000);
 
-    this.bot.command('testrepost', this.onTestRepost.bind(this));
+    this.listenForCommand(['testrepost'], this.onTestRepost.bind(this));
   }
 
   async stop(): Promise<void> {
