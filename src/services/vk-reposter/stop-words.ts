@@ -3,14 +3,10 @@ export const commonStopWords: Array<string | RegExp> = [
   'закажи',
   'дебетовую',
   /получи.*бонус/gm,
-  'za',
-  'zа',
-  'выборы',
-  'кпрф',
-  'справедливая',
-  'бречалов',
-  'единая',
-  'единую',
+  /сдам.*квартиру/,
+  /сдам.*гараж/,
+  /долгосрочную.*аренду/,
+  /z[aа]/,
 ];
 
 export const groupStopWords: Array<string | RegExp> = [
@@ -56,6 +52,7 @@ export const groupStopWords: Array<string | RegExp> = [
   'vr-zone',
   'арена виртуальной',
   'woldemar',
+  /бар.*спички/,
   'cталькомплект',
   'профнастил',
   'металлочерепица',
