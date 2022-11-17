@@ -1,10 +1,11 @@
-import i18next, {TFunction} from 'i18next';
+import i18next from 'i18next';
 import fetch from 'node-fetch';
 import {Telegraf} from 'telegraf';
 import {container} from 'tsyringe';
 import {translationsRU} from './i18n/ru';
 import {ConfigToken, FetchToken, TFunctionToken} from './misc/injection-tokens';
 import {Config} from './models/config.model';
+import {AntiSpamService} from './services/anti-spam/anti-spam.service';
 import {CommandsService} from './services/commands/commands.service';
 import {LoggerService} from './services/logger/logger.service';
 import {VkReposterService} from './services/vk-reposter/vk-reposter.service';
@@ -46,6 +47,7 @@ export class App {
     // Register all services
     this.services.push(container.resolve(CommandsService));
     this.services.push(container.resolve(VkReposterService));
+    this.services.push(container.resolve(AntiSpamService));
   }
 
   async start(): Promise<void> {
