@@ -1,6 +1,6 @@
 import {TFunction} from 'i18next';
 import {Telegraf, Context} from 'telegraf';
-import {Message} from 'telegraf/typings/core/types/typegram';
+import {Message, Update} from 'telegraf/typings/core/types/typegram';
 import {autoInjectable, inject} from 'tsyringe';
 import {User} from 'typegram';
 import {TFunctionToken} from '../../misc/injection-tokens';
@@ -21,17 +21,9 @@ export class AntiSpamService extends BaseCommandService {
   ) {
     super(logger, bot);
 
-    this.bot.on('new_chat_members', async ctx => {
-      await this.onNewChatMembersJoin(ctx, ctx.message?.new_chat_members);
-    });
-
-    this.bot.on('message', async ctx => {
-      await this.onNewMessage(ctx);
-    });
-
-    this.bot.on('edited_message', async ctx => {
-      await this.onNewMessage(ctx);
-    });
+    this.bot.on('new_chat_members', this.onNewChatMembersJoin.bind(this));
+    this.bot.on('message', this.onNewMessage.bind(this));
+    this.bot.on('edited_message', this.onEditMessage.bind(this));
   }
 
   async start(): Promise<void> {
@@ -42,7 +34,7 @@ export class AntiSpamService extends BaseCommandService {
     //
   }
 
-  protected async banIfNewMember(ctx: Context) {
+  protected async banIfNewMember(ctx: Context<any>) {
     const user = ctx.message?.from;
 
     if (!user) {
@@ -69,8 +61,8 @@ export class AntiSpamService extends BaseCommandService {
     );
   }
 
-  protected async onNewChatMembersJoin(ctx: Context, newChatMembers: User[]) {
-    newChatMembers.forEach(user => {
+  protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
+    ctx.message?.new_chat_members.forEach(user => {
       this.recentlyAddedMembers.push({
         joinTimestamp: Date.now(),
         user,
@@ -80,12 +72,20 @@ export class AntiSpamService extends BaseCommandService {
     this.recentlyAddedMembers.slice(-100);
   }
 
-  protected async onNewMessage(ctx: Context) {
-    const text = ((ctx.message as Message.TextMessage)?.text || '').toLowerCase().trim().replace('0', 'o');
+  protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
+    console.log('ctx.message', ctx.message);
+    console.log('ctx.message?.from', ctx.message?.from);
+
+    const text = ((ctx.message as Message.TextMessage)?.text || '')
+      .toLowerCase()
+      .trim()
+      .replace('0', 'o')
+      .replace('c', 'с'); // to RUS "с"
 
     [
       //
       /@|http|www/,
+      /love|sex|секс|секас|попочку|интим|эроти/,
       /pаботa|денег|деньги|crypto|invest/,
     ].forEach(regex => {
       if (text.match(regex)) {
@@ -93,6 +93,10 @@ export class AntiSpamService extends BaseCommandService {
         this.banIfNewMember(ctx).then();
       }
     });
+  }
+
+  protected async onEditMessage(ctx: Context<Update.EditedMessageUpdate>) {
+    return this.onNewMessage(ctx as any);
   }
 }
 
