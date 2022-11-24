@@ -31,6 +31,15 @@ describe('AntiSpamService', () => {
     antiSpamService = container.resolve(AntiSpamService);
   });
 
+  function addNewChatMembers(): Promise<void[]> {
+    return telegrafMock.triggerOn('new_chat_members', {
+      new_chat_members: [
+        {id: 1, username: 'test1'},
+        {id: 2, username: 'test2'},
+      ],
+    } as Message.NewChatMembersMessage);
+  }
+
   it('should remember new members', async () => {
     await addNewChatMembers();
 
@@ -103,12 +112,18 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
-  function addNewChatMembers(): Promise<void[]> {
-    return telegrafMock.triggerOn('new_chat_members', {
-      new_chat_members: [
-        {id: 1, username: 'test1'},
-        {id: 2, username: 'test2'},
-      ],
-    } as Message.NewChatMembersMessage);
-  }
+  it(`should ban new member who used links in attachment's caption`, async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      from: {id: 1, username: 'test1'},
+      caption_entities: [{}, {}],
+    });
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
 });

@@ -56,9 +56,12 @@ export class AntiSpamService extends BaseCommandService {
     }
 
     // Check if it is a new member
-    return !!this.recentlyAddedMembers.find(
-      m => m.user.id === user.id && Date.now() - m.joinTimestamp < this.newMemberTimeLimit,
-    );
+    const newMember = this.findNewMember(user);
+    return !!(newMember && Date.now() - newMember.joinTimestamp < this.newMemberTimeLimit);
+  }
+
+  protected findNewMember(user: User): MemberInfo | undefined {
+    return this.recentlyAddedMembers.find(m => m.user.id === user.id);
   }
 
   protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
@@ -76,12 +79,21 @@ export class AntiSpamService extends BaseCommandService {
     console.log('ctx.message', ctx.message);
     console.log('ctx.message?.from', ctx.message?.from);
 
+    let isLookLikeSpam = false;
+
     const text = ((ctx.message as Message.TextMessage)?.text || '')
       .toLowerCase()
       .trim()
       .replace('0', 'o')
       .replace('c', 'с'); // to RUS "с"
 
+    // Check if video with links attached (unusual behavior)
+    if ((ctx.message as any)?.caption_entities?.length) {
+      isLookLikeSpam = true;
+      this.log(`matched caption_entities`);
+    }
+
+    // Check stop-words
     [
       //
       /@|http|www/,
@@ -89,10 +101,14 @@ export class AntiSpamService extends BaseCommandService {
       /pаботa|денег|деньги|crypto|invest/,
     ].forEach(regex => {
       if (text.match(regex)) {
+        isLookLikeSpam = true;
         this.log(`matched ${regex}`);
-        this.banIfNewMember(ctx).then();
       }
     });
+
+    if (isLookLikeSpam) {
+      await this.banIfNewMember(ctx);
+    }
   }
 
   protected async onEditMessage(ctx: Context<Update.EditedMessageUpdate>) {
