@@ -2,6 +2,8 @@ export const commonStopWords: Array<string | RegExp> = [
   //
   'закажи',
   'дебетовую',
+  'vk.cc',
+  'похyдени',
   /получи.*бонус/gm,
   /сдам.*квартиру/,
   /сдам.*гараж/,
