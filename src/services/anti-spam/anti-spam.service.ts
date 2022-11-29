@@ -57,7 +57,13 @@ export class AntiSpamService extends BaseCommandService {
 
     // Check if it is a new member
     const newMember = this.findNewMember(user);
-    return !!(newMember && Date.now() - newMember.joinTimestamp < this.newMemberTimeLimit);
+
+    return !!(
+      newMember &&
+      Date.now() - newMember.joinTimestamp < this.newMemberTimeLimit && // check when joined
+      newMember.messagesCount <= 2 && // check messages count
+      true
+    );
   }
 
   protected findNewMember(user: User): MemberInfo | undefined {
@@ -67,8 +73,9 @@ export class AntiSpamService extends BaseCommandService {
   protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
     ctx.message?.new_chat_members.forEach(user => {
       this.recentlyAddedMembers.push({
-        joinTimestamp: Date.now(),
         user,
+        joinTimestamp: Date.now(),
+        messagesCount: 0,
       });
     });
 
@@ -78,6 +85,12 @@ export class AntiSpamService extends BaseCommandService {
   protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
     console.log('ctx.message', ctx.message);
     console.log('ctx.message?.from', ctx.message?.from);
+
+    // Increase message counter
+    const newMember = ctx.message?.from && this.findNewMember(ctx.message?.from);
+    if (newMember) {
+      newMember.messagesCount++;
+    }
 
     let isLookLikeSpam = false;
 
@@ -117,6 +130,7 @@ export class AntiSpamService extends BaseCommandService {
 }
 
 interface MemberInfo {
-  joinTimestamp: number;
   user: User;
+  joinTimestamp: number;
+  messagesCount: number;
 }

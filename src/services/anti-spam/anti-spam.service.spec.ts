@@ -97,6 +97,31 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
+  it('should not ban new member if he already sent several non-spam messages', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text: 'test',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    await telegrafMock.triggerOn('message', {
+      text: 'test2',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    await telegrafMock.triggerOn('message', {
+      text: 'test @somespam',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(0);
+    expect(ctxMock.banChatMember).toBeCalledTimes(0);
+  });
+
   it('should ban new member who used restricted word', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
