@@ -7,7 +7,7 @@ export const translationsRU = {
   },
 
   VkReposterService: {
-    messageBody: `<b>{{author}}</b>\n{{text}}\n<a href="{{url}}">[пост в VK]</a>`,
+    messageBody: `<b>{{author}}</b>\n{{text}}\n<a href="{{url}}">[пост в VK]</a> 👈 отвечать здесь`,
     messageVideo: ` <a href="{{url}}">[видео]</a>`,
   },
 };
