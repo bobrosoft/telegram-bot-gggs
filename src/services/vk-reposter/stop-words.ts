@@ -9,6 +9,8 @@ export const commonStopWords: Array<string | RegExp> = [
   /сдам.*гараж/,
   /долгосрочную.*аренду/,
   /z[aа]/,
+  /народн.*фронт/,
+  /военкор/,
   /clck/,
   /диагноз/,
 ];
