@@ -22,6 +22,7 @@ export const groupStopWords: Array<string | RegExp> = [
   'подписывайся',
   'вступайте',
   'объявления',
+  'voen',
   //
   'вакансия',
   'требуются',
