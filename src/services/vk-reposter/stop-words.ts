@@ -21,6 +21,7 @@ export const groupStopWords: Array<string | RegExp> = [
   //
   /club\d+/gm,
   /public\d+/gm,
+  'реклама',
   'подписывайся',
   'вступайте',
   'объявления',
@@ -77,4 +78,7 @@ export const groupStopWords: Array<string | RegExp> = [
   'automir',
   'ситилинк',
   'косметолог',
+  'банкротств',
+  'цех_18',
+  'кроссовки',
 ];
