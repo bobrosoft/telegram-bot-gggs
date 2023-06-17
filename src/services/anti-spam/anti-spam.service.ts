@@ -10,7 +10,7 @@ import {LoggerService} from '../logger/logger.service';
 @autoInjectable()
 export class AntiSpamService extends BaseCommandService {
   protected name = 'AntiSpamService';
-  protected newMemberTimeLimit: number = 2 * 86400 * 1000;
+  protected newMemberTimeLimit: number = 7 * 86400 * 1000;
   protected recentlyAddedMembers: MemberInfo[] = [];
 
   constructor(
@@ -98,10 +98,13 @@ export class AntiSpamService extends BaseCommandService {
       .toLowerCase()
       .trim()
       .replace('0', 'o')
+      .replace('o', 'о')
+      .replace('a', 'а')
+      .replace('p', 'р')
       .replace('c', 'с'); // to RUS "с"
 
-    // Check if video with links attached (unusual behavior)
-    if ((ctx.message as any)?.caption_entities?.length) {
+    // Check if video with links attached or using formatting (unusual behavior)
+    if ((ctx.message as any)?.caption_entities?.length || (ctx.message as any)?.entities?.length) {
       isLookLikeSpam = true;
       this.log(`matched caption_entities`);
     }
@@ -111,7 +114,7 @@ export class AntiSpamService extends BaseCommandService {
       //
       /@|http|www/,
       /love|sex|секс|секас|попочку|интим|эроти/,
-      /pабот[aук]|денег|деньги|crypto|invest/,
+      /работ[аук]|денег|деньги|crypto|invest/,
     ].forEach(regex => {
       if (text.match(regex)) {
         isLookLikeSpam = true;

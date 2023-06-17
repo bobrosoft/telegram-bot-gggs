@@ -69,7 +69,7 @@ describe('AntiSpamService', () => {
 
     await addNewChatMembers();
 
-    jest.spyOn(Date, 'now').mockImplementation(() => 1487076708000 + 3 * 86400 * 1000);
+    jest.spyOn(Date, 'now').mockImplementation(() => 1487076708000 + 8 * 86400 * 1000);
 
     await telegrafMock.triggerOn('new_chat_members', {
       new_chat_members: [
@@ -137,6 +137,23 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
+  it('should ban new member who used restricted word #2', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text:
+        'Pабoта зaклaдками в день 9-11к рублeй в недeлю 80к рублей \n' +
+        'Бecплатное oбучение, oплачивaемая стaжиpoвкa ПИШИ',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
   it(`should ban new member who used links in attachment's caption`, async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
@@ -145,7 +162,24 @@ describe('AntiSpamService', () => {
 
     await telegrafMock.triggerOn('message', {
       from: {id: 1, username: 'test1'},
+      text: 'test',
       caption_entities: [{}, {}],
+    });
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
+  it(`should ban new member who used formatting`, async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      from: {id: 1, username: 'test1'},
+      text: 'test',
+      entities: [{}, {}],
     });
 
     expect(ctxMock.deleteMessage).toBeCalledTimes(1);
