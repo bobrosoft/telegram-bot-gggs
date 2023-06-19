@@ -70,6 +70,28 @@ export class AntiSpamService extends BaseCommandService {
     return this.recentlyAddedMembers.find(m => m.user.id === user.id);
   }
 
+  protected isContainMaliciousSubstitutions(text: string): boolean {
+    const words = text.split(/\s+/);
+    if (
+      words.find(word => {
+        const ruMatches = [...word.toLowerCase().matchAll(/[а-я]/g)];
+        const enMatches = [...word.toLowerCase().matchAll(/[a-z]/g)];
+
+        if (ruMatches.length > 2 && enMatches.length > 2) {
+          return true;
+        }
+
+        if (ruMatches.length > 2 && enMatches.find(match => match[0].match(/[aopecu]/))) {
+          return true;
+        }
+      })
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
     ctx.message?.new_chat_members.forEach(user => {
       this.recentlyAddedMembers.push({
@@ -93,11 +115,16 @@ export class AntiSpamService extends BaseCommandService {
     }
 
     let isLookLikeSpam = false;
+    let text = ((ctx.message as Message.TextMessage)?.text || '').toLowerCase().trim();
 
-    const text = ((ctx.message as Message.TextMessage)?.text || '')
-      .toLowerCase()
-      .trim()
-      .replace('0', 'o')
+    if (this.isContainMaliciousSubstitutions(text)) {
+      this.log('contains malicious chars substitutions');
+      isLookLikeSpam = true;
+    }
+
+    // Additional filtering
+    text = text
+      .replace('0', 'o') //
       .replace('o', 'о')
       .replace('a', 'а')
       .replace('p', 'р')

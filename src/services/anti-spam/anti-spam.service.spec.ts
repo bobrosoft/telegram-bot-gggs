@@ -61,7 +61,7 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
-  it('should ban new member who used @mention but keep old one', async () => {
+  it('should ban new member who used @mention but keep old ones', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
 
@@ -152,6 +152,51 @@ describe('AntiSpamService', () => {
 
     expect(ctxMock.deleteMessage).toBeCalledTimes(1);
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
+  it('should ban a member who used malicious chars substitutions', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text: 'Злoнaмepенное испoльзовaние микса латинских и русских букв',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
+  it('should ban a member who used malicious chars substitutions #2', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text: 'Злонамеpенное использование микса латинских и русских букв',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
+  it('should NOT ban a member who used just a mix of Eng and Ru words', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text: 'Простое usage of русских и English слов',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(0);
+    expect(ctxMock.banChatMember).toBeCalledTimes(0);
   });
 
   it(`should ban new member who used links in attachment's caption`, async () => {
