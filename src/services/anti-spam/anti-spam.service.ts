@@ -77,10 +77,12 @@ export class AntiSpamService extends BaseCommandService {
         const ruMatches = [...word.toLowerCase().matchAll(/[а-я]/g)];
         const enMatches = [...word.toLowerCase().matchAll(/[a-z]/g)];
 
-        if (ruMatches.length > 2 && enMatches.length > 2) {
+        // Check if word has a mix of RU and other chars
+        if (ruMatches.length > 2 && word.length - ruMatches.length > 2) {
           return true;
         }
 
+        // Check if word has mix of RU and particular EN chars
         if (ruMatches.length > 2 && enMatches.find(match => match[0].match(/[aopecu]/))) {
           return true;
         }

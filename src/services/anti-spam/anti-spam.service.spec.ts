@@ -184,6 +184,21 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
+  it('should ban a member who used malicious chars substitutions #3', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text: 'Зᴀпоʍиʜающиᴇся cʜиӎҝᴎ бoёɞыx cpaжeнᴎй',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
   it('should NOT ban a member who used just a mix of Eng and Ru words', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
