@@ -186,6 +186,26 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
+  it('should ban new member who used restricted word #5', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text: `Требуются :
+1. Водителя на личном легковом автомобиле , так же приветствуется арендованные авто 
+Плачу 5500 рублей в день 
+2. Разнорабочие 
+Оплата 2800 рублей в день 
+Все вопросы в ЛС`,
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
   it('should ban a member who used malicious chars substitutions', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
