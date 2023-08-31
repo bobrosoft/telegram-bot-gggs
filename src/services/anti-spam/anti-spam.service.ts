@@ -35,6 +35,7 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async banIfNewMember(ctx: Context<any>) {
+    console.log(`banIfNewMember`);
     const user = ctx.message?.from;
 
     if (!user) {
@@ -49,14 +50,20 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async isNewMember(ctx: Context, user: User): Promise<boolean> {
+    console.log(`isNewMember`);
+
     // Check if admin
     const chatMember = await ctx.getChatMember(user.id);
+    console.log(`chatMember`, chatMember);
     if (chatMember.status === 'administrator' || chatMember.status === 'creator') {
       return false;
     }
 
     // Check if it is a new member
     const newMember = this.findNewMember(user);
+    console.log('user', user);
+    console.log('this.recentlyAddedMembers', this.recentlyAddedMembers);
+    console.log(`newMember`, newMember);
 
     return !!(
       newMember &&
