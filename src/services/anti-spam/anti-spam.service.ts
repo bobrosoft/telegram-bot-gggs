@@ -103,6 +103,10 @@ export class AntiSpamService extends BaseCommandService {
 
   protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
     console.log('onNewChatMembersJoin', ctx);
+    console.log('ctx.message', ctx.message);
+    console.log('ctx.message.new_chat_member', (ctx.message as any)?.new_chat_member);
+    console.log('ctx.message.new_chat_members', (ctx.message as any)?.new_chat_members);
+    
     ctx.message?.new_chat_members.forEach(user => {
       this.recentlyAddedMembers.push({
         user,
