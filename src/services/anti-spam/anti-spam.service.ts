@@ -102,6 +102,7 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
+    console.log('onNewChatMembersJoin', ctx);
     ctx.message?.new_chat_members.forEach(user => {
       this.recentlyAddedMembers.push({
         user,
@@ -110,7 +111,9 @@ export class AntiSpamService extends BaseCommandService {
       });
     });
 
+    console.log('this.recentlyAddedMembers', this.recentlyAddedMembers);
     this.recentlyAddedMembers.slice(-100);
+    console.log('this.recentlyAddedMembers after slice', this.recentlyAddedMembers);
   }
 
   protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
