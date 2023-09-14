@@ -9,7 +9,7 @@ import {VKAttachment, VkPost} from '../../models/vk-post.model';
 import {BaseCommandService} from '../base-command.service';
 import {LoggerService} from '../logger/logger.service';
 import testData from './testData.json';
-import {commonStopWords, groupStopWords} from './stop-words';
+import {commonStopWords, groupStopWords, userStopWords} from './stop-words';
 
 @autoInjectable()
 export class VkReposterService extends BaseCommandService {
@@ -148,6 +148,10 @@ export class VkReposterService extends BaseCommandService {
 
       // Check for group stop-words
       if (groupStopWords.find(word => preparedPostText.match(word))) {
+        return false;
+      }
+    } else {
+      if (userStopWords.find(word => preparedPostText.match(word))) {
         return false;
       }
     }

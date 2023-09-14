@@ -22,6 +22,7 @@ export class AntiSpamService extends BaseCommandService {
     super(logger, bot);
 
     this.bot.on('new_chat_members', this.onNewChatMembersJoin.bind(this));
+    this.bot.on('chat_member', this.onChatMember.bind(this));
     this.bot.on('message', this.onNewMessage.bind(this));
     this.bot.on('edited_message', this.onEditMessage.bind(this));
   }
@@ -50,20 +51,14 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async isNewMember(ctx: Context, user: User): Promise<boolean> {
-    console.log(`isNewMember`);
-
     // Check if admin
     const chatMember = await ctx.getChatMember(user.id);
-    console.log(`chatMember`, chatMember);
     if (chatMember.status === 'administrator' || chatMember.status === 'creator') {
       return false;
     }
 
     // Check if it is a new member
     const newMember = this.findNewMember(user);
-    console.log('user', user);
-    console.log('this.recentlyAddedMembers', this.recentlyAddedMembers);
-    console.log(`newMember`, newMember);
 
     return !!(
       newMember &&
@@ -85,7 +80,7 @@ export class AntiSpamService extends BaseCommandService {
         const enMatches = [...word.toLowerCase().matchAll(/[a-z]/g)];
 
         // Check if word has a mix of RU and other chars
-        if (ruMatches.length > 2 && word.length - ruMatches.length > 2) {
+        if (ruMatches.length > 2 && enMatches.length > 1) {
           return true;
         }
 
@@ -104,9 +99,7 @@ export class AntiSpamService extends BaseCommandService {
   protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
     console.log('onNewChatMembersJoin', ctx);
     console.log('ctx.message', ctx.message);
-    console.log('ctx.message.new_chat_member', (ctx.message as any)?.new_chat_member);
-    console.log('ctx.message.new_chat_members', (ctx.message as any)?.new_chat_members);
-    
+
     ctx.message?.new_chat_members.forEach(user => {
       this.recentlyAddedMembers.push({
         user,
@@ -115,14 +108,11 @@ export class AntiSpamService extends BaseCommandService {
       });
     });
 
-    console.log('this.recentlyAddedMembers', this.recentlyAddedMembers);
     this.recentlyAddedMembers.slice(-100);
-    console.log('this.recentlyAddedMembers after slice', this.recentlyAddedMembers);
   }
 
   protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
     console.log('ctx.message', ctx.message);
-    console.log('ctx.message?.from', ctx.message?.from);
 
     // Increase message counter
     const newMember = ctx.message?.from && this.findNewMember(ctx.message?.from);
@@ -172,6 +162,11 @@ export class AntiSpamService extends BaseCommandService {
 
   protected async onEditMessage(ctx: Context<Update.EditedMessageUpdate>) {
     return this.onNewMessage(ctx as any);
+  }
+
+  protected async onChatMember(ctx: Context<Update.ChatMemberUpdate>) {
+    console.log('onChatMember', ctx);
+    console.log('ctx.update', ctx.update);
   }
 }
 

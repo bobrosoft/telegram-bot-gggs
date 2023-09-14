@@ -266,6 +266,21 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(0);
   });
 
+  it('should NOT ban a member who used mix of words and Emojis', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerOn('message', {
+      text: 'Кто в ближайший час едет с\nГлазова в Ижевск нужно передать конверт🙏🙏🙏',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(0);
+    expect(ctxMock.banChatMember).toBeCalledTimes(0);
+  });
+
   it(`should ban new member who used links in attachment's caption`, async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');

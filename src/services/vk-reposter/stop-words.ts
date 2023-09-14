@@ -13,8 +13,16 @@ export const commonStopWords: Array<string | RegExp> = [
   /z.o.v/,
   /народн.*фронт/,
   /военкор/,
+  /военн.*служб/,
+  /по контракту/,
   /clck/,
   /диагноз/,
+];
+
+export const userStopWords: Array<string | RegExp> = [
+  //
+  'sber-bank',
+  'away.php',
 ];
 
 export const groupStopWords: Array<string | RegExp> = [
