@@ -143,7 +143,8 @@ export class AntiSpamService extends BaseCommandService {
       //
       /@|http|www/,
       /love|sex|секс|секас|попочку|интим|эроти/,
-      /работ[аук]|рабоч|оплата|денег|деньги|crypto|invest|зп\s/,
+      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб/,
+      /рабоч|патент|оплата|денег|деньги|crypto|invest|зп\s/,
     ].forEach(regex => {
       if (text.match(regex)) {
         isLookLikeSpam = true;

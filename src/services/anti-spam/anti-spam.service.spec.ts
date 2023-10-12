@@ -151,6 +151,40 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
+  it('should ban spammer who used restricted word #6', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    for (let i = 0; i < 2; i++) {
+      await telegrafMock.triggerUpdate('message', {
+        text: `Кто свободен сегодня, есть работа для всех 14+ и без патента, оплата от 3500 в день + проезд.`,
+        from: {id: 1, username: 'test1'},
+      } as Message.TextMessage);
+    }
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(2);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
+  it('should NOT ban a user #1', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    for (let i = 0; i < 2; i++) {
+      await telegrafMock.triggerUpdate('message', {
+        text: `Работают на Свободе`,
+        from: {id: 1, username: 'test1'},
+      } as Message.TextMessage);
+    }
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(0);
+    expect(ctxMock.banChatMember).toBeCalledTimes(0);
+  });
+
   it('should ban a member who used malicious chars substitutions', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
