@@ -45,7 +45,7 @@ export class TelegrafMock {
     this.hearsListeners.push({matcher, callback});
   }
 
-  triggerOn(updateType: string, messageData?: any): Promise<void[]> {
+  triggerUpdate(updateType: string, messageData?: any): Promise<void[]> {
     this.ctxMock.message = messageData;
 
     return Promise.all(

@@ -10,8 +10,7 @@ import {LoggerService} from '../logger/logger.service';
 @autoInjectable()
 export class AntiSpamService extends BaseCommandService {
   protected name = 'AntiSpamService';
-  protected newMemberTimeLimit: number = 7 * 86400 * 1000;
-  protected recentlyAddedMembers: MemberInfo[] = [];
+  protected spammers: MemberInfo[] = [];
 
   constructor(
     //
@@ -21,8 +20,6 @@ export class AntiSpamService extends BaseCommandService {
   ) {
     super(logger, bot);
 
-    this.bot.on('new_chat_members', this.onNewChatMembersJoin.bind(this));
-    this.bot.on('chat_member', this.onChatMember.bind(this));
     this.bot.on('message', this.onNewMessage.bind(this));
     this.bot.on('edited_message', this.onEditMessage.bind(this));
   }
@@ -35,41 +32,55 @@ export class AntiSpamService extends BaseCommandService {
     //
   }
 
-  protected async banIfNewMember(ctx: Context<any>) {
-    console.log(`banIfNewMember`);
+  protected async banIfSpammer(ctx: Context<any>) {
+    console.log(`banIfSpammer`);
     const user = ctx.message?.from;
 
     if (!user) {
       return;
     }
 
-    if (await this.isNewMember(ctx, user)) {
-      this.log(`ban ${user.username}(ID: ${user.id}) with banIfNewMember`);
-      await ctx.deleteMessage();
+    if (await this.isSpammer(ctx, user)) {
+      this.log(`ban ${user.username}(ID: ${user.id}) with banIfSpammer`);
       await ctx.banChatMember(user.id, undefined, {revoke_messages: true});
     }
   }
 
-  protected async isNewMember(ctx: Context, user: User): Promise<boolean> {
+  protected async isSpammer(ctx: Context, user: User): Promise<boolean> {
     // Check if admin
     const chatMember = await ctx.getChatMember(user.id);
     if (chatMember.status === 'administrator' || chatMember.status === 'creator') {
       return false;
     }
 
-    // Check if it is a new member
-    const newMember = this.findNewMember(user);
+    // Check if it is a spammer
+    const spammer = this.findSpammer(user);
 
     return !!(
-      newMember &&
-      Date.now() - newMember.joinTimestamp < this.newMemberTimeLimit && // check when joined
-      newMember.messagesCount <= 2 && // check messages count
+      spammer &&
+      spammer.spamMessagesCount >= 2 && // check messages count
       true
     );
   }
 
-  protected findNewMember(user: User): MemberInfo | undefined {
-    return this.recentlyAddedMembers.find(m => m.user.id === user.id);
+  protected findSpammer(user: User): MemberInfo | undefined {
+    return this.spammers.find(m => m.user.id === user.id);
+  }
+
+  protected recordSpammer(user: User) {
+    const spammer = this.findSpammer(user);
+
+    if (spammer) {
+      spammer.spamMessagesCount++;
+      spammer.lastSpamMessageAt = Date.now();
+    } else {
+      this.spammers.push({
+        user,
+        createAt: Date.now(),
+        lastSpamMessageAt: Date.now(),
+        spamMessagesCount: 1,
+      });
+    }
   }
 
   protected isContainMaliciousSubstitutions(text: string): boolean {
@@ -96,28 +107,13 @@ export class AntiSpamService extends BaseCommandService {
     return false;
   }
 
-  protected async onNewChatMembersJoin(ctx: Context<Update.MessageUpdate<Message.NewChatMembersMessage>>) {
-    console.log('onNewChatMembersJoin', ctx);
-    console.log('ctx.message', ctx.message);
-
-    ctx.message?.new_chat_members.forEach(user => {
-      this.recentlyAddedMembers.push({
-        user,
-        joinTimestamp: Date.now(),
-        messagesCount: 0,
-      });
-    });
-
-    this.recentlyAddedMembers.slice(-100);
-  }
-
   protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
     console.log('ctx.message', ctx.message);
 
     // Increase message counter
-    const newMember = ctx.message?.from && this.findNewMember(ctx.message?.from);
+    const newMember = ctx.message?.from && this.findSpammer(ctx.message?.from);
     if (newMember) {
-      newMember.messagesCount++;
+      newMember.spamMessagesCount++;
     }
 
     let isLookLikeSpam = false;
@@ -156,22 +152,20 @@ export class AntiSpamService extends BaseCommandService {
     });
 
     if (isLookLikeSpam) {
-      await this.banIfNewMember(ctx);
+      this.recordSpammer(ctx.message?.from);
+      await (ctx as Context<any>).deleteMessage();
+      await this.banIfSpammer(ctx);
     }
   }
 
   protected async onEditMessage(ctx: Context<Update.EditedMessageUpdate>) {
     return this.onNewMessage(ctx as any);
   }
-
-  protected async onChatMember(ctx: Context<Update.ChatMemberUpdate>) {
-    console.log('onChatMember', ctx);
-    console.log('ctx.update', ctx.update);
-  }
 }
 
 interface MemberInfo {
   user: User;
-  joinTimestamp: number;
-  messagesCount: number;
+  createAt: number;
+  lastSpamMessageAt: number;
+  spamMessagesCount: number;
 }
