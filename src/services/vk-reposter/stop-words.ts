@@ -51,6 +51,7 @@ export const groupStopWords: Array<string | RegExp> = [
   'бизнес ланч',
   'кафе',
   'доставка',
+  /грузоперевозки\s+по\s+/,
   //
   'detali18',
   'колибри',

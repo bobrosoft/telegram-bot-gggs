@@ -46,14 +46,13 @@ export class AntiSpamService extends BaseCommandService {
     }
   }
 
-  protected async isSpammer(ctx: Context, user: User): Promise<boolean> {
-    // Check if admin
+  protected async isAdmin(ctx: Context<any>, user: User): Promise<boolean> {
     const chatMember = await ctx.getChatMember(user.id);
-    if (chatMember.status === 'administrator' || chatMember.status === 'creator') {
-      return false;
-    }
+    return chatMember.status === 'administrator' || chatMember.status === 'creator';
+  }
 
-    // Check if it is a spammer
+  protected async isSpammer(ctx: Context, user: User): Promise<boolean> {
+    // Check if it in spammer list
     const spammer = this.findSpammer(user);
 
     return !!(
@@ -110,12 +109,6 @@ export class AntiSpamService extends BaseCommandService {
   protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
     console.log('ctx.message', ctx.message);
 
-    // Increase message counter
-    const newMember = ctx.message?.from && this.findSpammer(ctx.message?.from);
-    if (newMember) {
-      newMember.spamMessagesCount++;
-    }
-
     let isLookLikeSpam = false;
     let text = ((ctx.message as Message.TextMessage)?.text || '').toLowerCase().trim();
 
@@ -144,7 +137,7 @@ export class AntiSpamService extends BaseCommandService {
       /@|http|www/,
       /love|sex|секс|секас|попочку|интим|эроти/,
       /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб/,
-      /рабоч|патент|оплата|денег|деньги|crypto|invest|зп\s/,
+      /рабоч|патент|оплата|денег|деньг|crypto|invest|зп\s/,
     ].forEach(regex => {
       if (text.match(regex)) {
         isLookLikeSpam = true;
@@ -153,6 +146,11 @@ export class AntiSpamService extends BaseCommandService {
     });
 
     if (isLookLikeSpam) {
+      // Check if admin
+      if (await this.isAdmin(ctx, ctx.message?.from)) {
+        return;
+      }
+
       this.recordSpammer(ctx.message?.from);
       await (ctx as Context<any>).deleteMessage();
       await this.banIfSpammer(ctx);
