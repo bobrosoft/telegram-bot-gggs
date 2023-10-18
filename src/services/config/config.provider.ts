@@ -9,6 +9,6 @@ export function provideConfig(environment: 'staging' | 'production' = 'staging')
     chatLink: 'https://t.me/gggs_glazov',
     vkAccessToken: String(process.env.VK_ACCESS_TOKEN),
     vkGroupsToCheck: ['-59783420'],
-    chatsForVkReposts: environment === 'production' ? [-1001413709807] : [-804012093],
+    chatsForVkReposts: environment === 'production' ? [-1001413709807] : [207309431],
   };
 }

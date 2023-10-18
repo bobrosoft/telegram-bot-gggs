@@ -1,5 +1,5 @@
 import {TFunction} from 'i18next';
-import fetch from 'node-fetch';
+import fetch, {FetchError} from 'node-fetch';
 import {Telegraf} from 'telegraf';
 import {autoInjectable, inject} from 'tsyringe';
 import {URLSearchParams} from 'url';
@@ -48,21 +48,25 @@ export class VkReposterService extends BaseCommandService {
   protected async checkForNewPosts(isFirstRun = false) {
     this.log('checkForNewPosts');
 
-    const data = await fetch('https://api.vk.com/method/wall.get', {
-      method: 'POST',
-      body: this.buildBody({
-        owner_id: this.config.vkGroupsToCheck[0],
-        extended: 1,
-        count: 3,
-      }),
-    }).then(r => r.json());
+    try {
+      const data = await fetch('https://api.vk.com/method/wall.get', {
+        method: 'POST',
+        body: this.buildBody({
+          owner_id: this.config.vkGroupsToCheck[0],
+          extended: 1,
+          count: 3,
+        }),
+      }).then(r => r.json());
 
-    // Need to fill in recentPostIds for the first run to not post them after bot restart
-    if (isFirstRun) {
-      (data.response.items as VkPost[]).forEach(post => this.recentPostIds.push(post.id));
+      // Need to fill in recentPostIds for the first run to not post them after bot restart
+      if (isFirstRun) {
+        (data.response.items as VkPost[]).forEach(post => this.recentPostIds.push(post.id));
+      }
+
+      await this.processPostsData(data);
+    } catch (e) {
+      this.logFetchError(e as any);
     }
-
-    await this.processPostsData(data);
   }
 
   protected buildBody(payload: {[key: string]: any}): URLSearchParams {
@@ -98,11 +102,23 @@ export class VkReposterService extends BaseCommandService {
       this.log(`Posting new message "${message.debugText}" (ID: ${message.postId})`);
 
       for (const chatId of this.config.chatsForVkReposts) {
-        if (message.imagePreviewUrl) {
-          await this.bot.telegram.sendPhoto(chatId, message.imagePreviewUrl, {
-            caption: message.text.substr(0, 1010),
-            parse_mode: 'HTML',
-          });
+        if (message.imageUrls?.length) {
+          if (message.imageUrls?.length === 1) {
+            await this.bot.telegram.sendPhoto(chatId, message.imageUrls[0], {
+              caption: message.text.substr(0, 1010),
+              parse_mode: 'HTML',
+            });
+          } else {
+            await this.bot.telegram.sendMediaGroup(
+              chatId,
+              message.imageUrls.map((imageUrl, index) => ({
+                type: 'photo',
+                media: {url: imageUrl},
+                caption: index === 0 ? message.text.substr(0, 1010) : undefined,
+                parse_mode: index === 0 ? 'HTML' : undefined,
+              })),
+            );
+          }
         } else {
           await this.bot.telegram.sendMessage(chatId, message.text.substr(0, 4000), {
             parse_mode: 'HTML',
@@ -161,7 +177,7 @@ export class VkReposterService extends BaseCommandService {
 
   protected convertPostToMessage(post: VkPost, authors: Author[]): Message {
     const author = authors.find(a => a.id === post.from_id) || authors.find(a => a.id === post.owner_id);
-    const firstAttachment: VKAttachment | undefined = (post.attachments || []).find(a =>
+    const attachments: VKAttachment[] = (post.attachments || []).filter(a =>
       ['photo', 'video', 'doc'].includes(a.type),
     );
     const videoAttachment: VKAttachment | undefined = (post.attachments || []).find(a => a.type === 'video');
@@ -178,29 +194,40 @@ export class VkReposterService extends BaseCommandService {
       });
     }
 
-    let photoUrl = undefined;
-    if (firstAttachment?.type === 'photo') {
-      photoUrl = firstAttachment.photo.sizes[firstAttachment.photo.sizes.length - 1].url;
-    } else if (firstAttachment?.type === 'video') {
-      photoUrl = firstAttachment.video.image[firstAttachment.video.image.length - 1].url;
+    const photoUrls: string[] = attachments
+      .map(attachment => {
+        let result: string | undefined;
 
-      if (photoUrl.match('thumbs/video_x.png')) {
-        photoUrl = undefined;
-      }
-    } else if (firstAttachment?.type === 'doc') {
-      photoUrl = firstAttachment.doc.preview.photo?.sizes.find(s => ['x', 'y', 'z'].includes(s.type))?.src;
-    }
+        if (attachment?.type === 'photo') {
+          result = attachment.photo.sizes[attachment.photo.sizes.length - 1].url;
+        } else if (attachment?.type === 'video') {
+          result = attachment.video.image[attachment.video.image.length - 1].url;
+
+          if (result.match('thumbs/video_x.png')) {
+            result = undefined;
+          }
+        } else if (attachment?.type === 'doc') {
+          result = attachment.doc.preview.photo?.sizes.find(s => ['x', 'y', 'z'].includes(s.type))?.src;
+        }
+
+        return result || '';
+      })
+      .filter(a => !!a); // remove empty
 
     return {
       postId: post.id,
       text,
       debugText: post.text.substr(0, 20).replace(/[\n\t]/g, ''),
-      imagePreviewUrl: photoUrl,
+      imageUrls: photoUrls,
     };
   }
 
   protected async onTestRepost() {
     await this.processPostsData(testData, false);
+  }
+
+  protected logFetchError(e: FetchError) {
+    this.log(`Error: status ${(e as FetchError).code}. ` + (e as FetchError).message);
   }
 }
 
@@ -214,5 +241,5 @@ interface Message {
   postId: number;
   text: string;
   debugText: string;
-  imagePreviewUrl?: string;
+  imageUrls: string[];
 }
