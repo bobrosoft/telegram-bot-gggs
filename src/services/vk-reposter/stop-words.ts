@@ -92,4 +92,6 @@ export const groupStopWords: Array<string | RegExp> = [
   'банкротств',
   'цех_18',
   'кроссовки',
+  /рыб.*камчатк/,
+  /икр[ауы]\s/,
 ];

