@@ -117,6 +117,11 @@ export class AntiSpamService extends BaseCommandService {
       isLookLikeSpam = true;
     }
 
+    // If bot repost
+    if ((ctx.message as any).via_bot) {
+      isLookLikeSpam = true;
+    }
+
     // Additional filtering
     text = text
       .replace('0', 'o') //
