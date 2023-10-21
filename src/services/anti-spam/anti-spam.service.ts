@@ -146,7 +146,7 @@ export class AntiSpamService extends BaseCommandService {
       //
       /@|http|httр|www/, // second is with RUS "р"
       /love|sex|секс|секас|попочку|интим|эроти|игривое/,
-      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб/,
+      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб|работ[аук].*возраст|работ[аук].*\d+р/,
       /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|заработн\.*плат\s/,
     ].forEach(regex => {
       if (text.match(regex)) {
