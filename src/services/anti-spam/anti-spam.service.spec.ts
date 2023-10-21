@@ -80,16 +80,14 @@ describe('AntiSpamService', () => {
 
     await addNewChatMembers();
 
-    for (let i = 0; i < 2; i++) {
-      await telegrafMock.triggerUpdate('message', {
-        text:
-          'Pабoта зaклaдками в день 9-11к рублeй в недeлю 80к рублей \n' +
-          'Бecплатное oбучение, oплачивaемая стaжиpoвкa ПИШИ',
-        from: {id: 1, username: 'test1'},
-      } as Message.TextMessage);
-    }
+    await telegrafMock.triggerUpdate('message', {
+      text:
+        'Pабoта зaклaдками в день 9-11к рублeй в недeлю 80к рублей \n' +
+        'Бecплатное oбучение, oплачивaемая стaжиpoвкa ПИШИ',
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
 
-    expect(ctxMock.deleteMessage).toBeCalledTimes(2);
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
@@ -168,6 +166,37 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
+  it('should ban spammer who has premium account after single message', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerUpdate('message', {
+      text: `Кто свободен сегодня, есть работа для всех 14+ и без патента, оплата от 3500 в день + проезд.`,
+      from: {id: 1, username: 'test1', is_premium: true},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
+  it('should ban spammer who used 2 suspicious thing in message', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerUpdate('message', {
+      text: `Кто свободен сегодня, есть работа для всех 14+ и без патента, оплата от 3500 в день + проезд.`,
+      caption_entities: [{}, {}],
+      from: {id: 1, username: 'test1'},
+    });
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
   it('should NOT ban a user #1', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
@@ -182,6 +211,37 @@ describe('AntiSpamService', () => {
     }
 
     expect(ctxMock.deleteMessage).toBeCalledTimes(0);
+    expect(ctxMock.banChatMember).toBeCalledTimes(0);
+  });
+
+  it('should NOT ban a user #2', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerUpdate('message', {
+      text: `Работают на Свободе`,
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+    await telegrafMock.triggerUpdate('message', {
+      text: `что-то холодно стало`,
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+    await telegrafMock.triggerUpdate('message', {
+      text: `вот тут какая-то ссылка http`,
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+    await telegrafMock.triggerUpdate('message', {
+      text: `что-то холодно стало`,
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+    await telegrafMock.triggerUpdate('message', {
+      text: `вот тут какая-то ссылка http`,
+      from: {id: 1, username: 'test1'},
+    } as Message.TextMessage);
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(2);
     expect(ctxMock.banChatMember).toBeCalledTimes(0);
   });
 

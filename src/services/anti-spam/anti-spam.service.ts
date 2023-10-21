@@ -10,7 +10,7 @@ import {LoggerService} from '../logger/logger.service';
 @autoInjectable()
 export class AntiSpamService extends BaseCommandService {
   protected name = 'AntiSpamService';
-  protected spammers: MemberInfo[] = [];
+  protected members: MemberInfo[] = [];
 
   constructor(
     //
@@ -33,7 +33,6 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async banIfSpammer(ctx: Context<any>) {
-    console.log(`banIfSpammer`);
     const user = ctx.message?.from;
 
     if (!user) {
@@ -53,31 +52,37 @@ export class AntiSpamService extends BaseCommandService {
 
   protected async isSpammer(ctx: Context, user: User): Promise<boolean> {
     // Check if it in spammer list
-    const spammer = this.findSpammer(user);
+    const member = this.findMember(user);
+    console.log(member);
 
     return !!(
-      spammer &&
-      spammer.spamMessagesCount >= 2 && // check messages count
+      member &&
+      member.spamScore >= 2 &&
+      member.spamScore >= member.messagesCount - member.spamMessagesCount && // check spam score
       true
     );
   }
 
-  protected findSpammer(user: User): MemberInfo | undefined {
-    return this.spammers.find(m => m.user.id === user.id);
+  protected findMember(user: User): MemberInfo | undefined {
+    return this.members.find(m => m.user.id === user.id);
   }
 
-  protected recordSpammer(user: User) {
-    const spammer = this.findSpammer(user);
+  protected updateMemberStats(user: User, spamScore: number) {
+    const member = this.findMember(user);
 
-    if (spammer) {
-      spammer.spamMessagesCount++;
-      spammer.lastSpamMessageAt = Date.now();
+    if (member) {
+      member.messagesCount++;
+      member.spamScore += spamScore;
+      member.lastSpamMessageAt = spamScore ? Date.now() : member.lastSpamMessageAt;
+      member.spamMessagesCount += spamScore ? 1 : 0;
     } else {
-      this.spammers.push({
+      this.members.push({
         user,
-        createAt: Date.now(),
-        lastSpamMessageAt: Date.now(),
-        spamMessagesCount: 1,
+        createdAt: Date.now(),
+        messagesCount: 1,
+        lastSpamMessageAt: spamScore ? Date.now() : null,
+        spamScore: spamScore,
+        spamMessagesCount: spamScore ? 1 : 0,
       });
     }
   }
@@ -109,20 +114,20 @@ export class AntiSpamService extends BaseCommandService {
   protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
     console.log('ctx.message', ctx.message);
 
-    let isLookLikeSpam = false;
+    let spamScore = 0;
     let text = ((ctx.message as Message.TextMessage)?.text || '').toLowerCase().trim();
 
     if (this.isContainMaliciousSubstitutions(text)) {
       this.log('contains malicious chars substitutions');
-      isLookLikeSpam = true;
+      spamScore++;
     }
 
     // If bot repost
     if ((ctx.message as any).via_bot) {
-      isLookLikeSpam = true;
+      spamScore++;
     }
 
-    // Additional filtering
+    // // Additional filtering
     text = text
       .replace('0', 'o') //
       .replace('o', 'о')
@@ -132,31 +137,39 @@ export class AntiSpamService extends BaseCommandService {
 
     // Check if video with links attached or using formatting (unusual behavior)
     if ((ctx.message as any)?.caption_entities?.length || (ctx.message as any)?.entities?.length) {
-      isLookLikeSpam = true;
+      spamScore++;
       this.log(`matched caption_entities`);
     }
 
     // Check stop-words
     [
       //
-      /@|http|www/,
-      /love|sex|секс|секас|попочку|интим|эроти/,
+      /@|http|httр|www/, // second is with RUS "р"
+      /love|sex|секс|секас|попочку|интим|эроти|игривое/,
       /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб/,
-      /рабоч|патент|оплата|денег|деньг|crypto|invest|зп\s/,
+      /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|заработн\.*плат\s/,
     ].forEach(regex => {
       if (text.match(regex)) {
-        isLookLikeSpam = true;
+        spamScore++;
         this.log(`matched ${regex}`);
       }
     });
 
-    if (isLookLikeSpam) {
+    // A lot of spammers have premium accounts
+    if (spamScore > 0) {
+      if (ctx.message?.from.is_premium) {
+        spamScore++;
+      }
+    }
+
+    this.updateMemberStats(ctx.message?.from, spamScore);
+
+    if (spamScore > 0) {
       // Check if admin
       if (await this.isAdmin(ctx, ctx.message?.from)) {
         return;
       }
 
-      this.recordSpammer(ctx.message?.from);
       await (ctx as Context<any>).deleteMessage();
       await this.banIfSpammer(ctx);
     }
@@ -169,7 +182,9 @@ export class AntiSpamService extends BaseCommandService {
 
 interface MemberInfo {
   user: User;
-  createAt: number;
-  lastSpamMessageAt: number;
+  createdAt: number;
+  messagesCount: number;
+  lastSpamMessageAt: number | null;
+  spamScore: number;
   spamMessagesCount: number;
 }
