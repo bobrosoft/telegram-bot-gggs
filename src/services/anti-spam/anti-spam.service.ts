@@ -124,7 +124,7 @@ export class AntiSpamService extends BaseCommandService {
 
     // If bot repost
     if ((ctx.message as any).via_bot) {
-      spamScore++;
+      spamScore += 2;
     }
 
     // // Additional filtering
