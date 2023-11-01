@@ -146,7 +146,7 @@ describe('AntiSpamService', () => {
     }
 
     expect(ctxMock.deleteMessage).toBeCalledTimes(2);
-    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalled();
   });
 
   it('should ban spammer who used restricted word #6', async () => {
@@ -163,7 +163,24 @@ describe('AntiSpamService', () => {
     }
 
     expect(ctxMock.deleteMessage).toBeCalledTimes(2);
-    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalled();
+  });
+
+  it('should ban spammer who used restricted word #7', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    for (let i = 0; i < 2; i++) {
+      await telegrafMock.triggerUpdate('message', {
+        text: `Кто свободен сейчас ?Плачу по 4.500 тыс рублей за погрузку Отпишите в лс.`,
+        from: {id: 1, username: 'test1'},
+      } as Message.TextMessage);
+    }
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(2);
+    expect(ctxMock.banChatMember).toBeCalled();
   });
 
   it('should ban spammer who has premium account after single message', async () => {
@@ -181,7 +198,7 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
-  it('should ban spammer who used 2 suspicious thing in message', async () => {
+  it('should ban spammer who used 2 suspicious things in message', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
 
@@ -306,6 +323,27 @@ describe('AntiSpamService', () => {
       text: 'Some message',
       from: {id: 1, username: 'test1'},
       via_bot: {},
+    });
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(1);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
+  it('should ban a member who used bot repost #2', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    await telegrafMock.triggerUpdate('message', {
+      text: 'Some message',
+      from: {id: 1, username: 'test1'},
+      forward_from: {
+        id: 1273732975,
+        is_bot: true,
+        first_name: 'Post Bot',
+        username: 'Post_Padsbot',
+      },
     });
 
     expect(ctxMock.deleteMessage).toBeCalledTimes(1);

@@ -123,7 +123,7 @@ export class AntiSpamService extends BaseCommandService {
     }
 
     // If bot repost
-    if ((ctx.message as any).via_bot) {
+    if ((ctx.message as any).via_bot || (ctx.message as any).forward_from?.is_bot) {
       spamScore += 2;
     }
 
@@ -146,7 +146,7 @@ export class AntiSpamService extends BaseCommandService {
       //
       /@|http|httр|www/, // second is with RUS "р"
       /love|sex|секс|секас|попочку|интим|эроти|игривое/,
-      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб|работ[аук].*возраст|работ[аук].*\d+р/,
+      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб|работ[аук].*возраст|работ[аук].*\d+р|пла[чт].*\d+/,
       /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|зарплат|заработн\.*плат\s/,
     ].forEach(regex => {
       if (text.match(regex)) {
