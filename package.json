@@ -15,11 +15,12 @@
   "author": "bobrosoft",
   "license": "ISC",
   "dependencies": {
+    "@types/jest": "^27.4.1",
     "@types/node": "^17.0.5",
     "@types/node-fetch": "^2.5.12",
-    "@types/jest": "^27.4.1",
     "dotenv": "^10.0.0",
     "i18next": "^21.6.4",
+    "mongoose": "^7.6.3",
     "node-fetch": "^2.6.6",
     "reflect-metadata": "^0.1.13",
     "telegraf": "^4.10.0",
