@@ -1,8 +1,7 @@
 import {TFunction} from 'i18next';
 import {Telegraf, Context} from 'telegraf';
-import {Message, Update} from 'telegraf/typings/core/types/typegram';
+import {Message, Update, User} from 'telegraf/typings/core/types/typegram';
 import {autoInjectable, inject} from 'tsyringe';
-import {User} from 'typegram';
 import {TFunctionToken} from '../../misc/injection-tokens';
 import {BaseCommandService} from '../base-command.service';
 import {LoggerService} from '../logger/logger.service';

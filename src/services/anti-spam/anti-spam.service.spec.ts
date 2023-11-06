@@ -1,6 +1,6 @@
 import {Telegraf} from 'telegraf';
+import {Message} from 'telegraf/typings/core/types/typegram';
 import {container} from 'tsyringe';
-import {Message} from 'typegram/message';
 import {TFunctionToken} from '../../misc/injection-tokens';
 import {TelegrafContextMock, TelegrafMock} from '../../misc/telegraf-mocks';
 import {LoggerService} from '../logger/logger.service';
