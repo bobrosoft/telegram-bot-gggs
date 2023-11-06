@@ -51,7 +51,7 @@ export class App {
   }
 
   async start(): Promise<void> {
-    await this.bot.launch();
+    this.bot.launch().catch(e => console.error('bot.launch error:', e));
     await Promise.all(this.services.map(s => s.start()));
   }
 
