@@ -175,6 +175,7 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async onEditMessage(ctx: Context<Update.EditedMessageUpdate>) {
+    (ctx as any).message = ctx.editedMessage;
     return this.onNewMessage(ctx as any);
   }
 }
