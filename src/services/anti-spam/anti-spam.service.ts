@@ -110,7 +110,7 @@ export class AntiSpamService extends BaseCommandService {
     return false;
   }
 
-  protected async onNewMessage(ctx: Context<Update.MessageUpdate<Message>>) {
+  protected async processNewMessage(message: Message, ctx: Context<Update.MessageUpdate<Message>>) {
     console.log('ctx.message', ctx.message);
 
     let spamScore = 0;
@@ -174,9 +174,12 @@ export class AntiSpamService extends BaseCommandService {
     }
   }
 
+  protected async onNewMessage(ctx: Context<Update.MessageUpdate>) {
+    return this.processNewMessage(ctx.message, ctx as any);
+  }
+
   protected async onEditMessage(ctx: Context<Update.EditedMessageUpdate>) {
-    (ctx as any).message = ctx.editedMessage;
-    return this.onNewMessage(ctx as any);
+    return this.processNewMessage(ctx.editedMessage, ctx as any);
   }
 }
 
