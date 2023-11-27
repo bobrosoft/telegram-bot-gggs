@@ -111,10 +111,10 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async processNewMessage(message: Message, ctx: Context<Update.MessageUpdate<Message>>) {
-    console.log('ctx.message', ctx.message);
+    console.log('message', message);
 
     let spamScore = 0;
-    let text = ((ctx.message as Message.TextMessage)?.text || '').toLowerCase().trim();
+    let text = ((message as Message.TextMessage)?.text || '').toLowerCase().trim();
 
     if (this.isContainMaliciousSubstitutions(text)) {
       this.log('contains malicious chars substitutions');
@@ -122,7 +122,7 @@ export class AntiSpamService extends BaseCommandService {
     }
 
     // If bot repost
-    if ((ctx.message as any).via_bot || (ctx.message as any).forward_from?.is_bot) {
+    if ((message as any).via_bot || (message as any).forward_from?.is_bot) {
       spamScore += 2;
     }
 
@@ -135,7 +135,7 @@ export class AntiSpamService extends BaseCommandService {
       .replace('c', 'с'); // to RUS "с"
 
     // Check if video with links attached or using formatting (unusual behavior)
-    if ((ctx.message as any)?.caption_entities?.length || (ctx.message as any)?.entities?.length) {
+    if ((message as any)?.caption_entities?.length || (message as any)?.entities?.length) {
       spamScore++;
       this.log(`matched caption_entities`);
     }
@@ -154,18 +154,22 @@ export class AntiSpamService extends BaseCommandService {
       }
     });
 
+    if (!message?.from) {
+      return;
+    }
+
     // A lot of spammers have premium accounts
     if (spamScore > 0) {
-      if (ctx.message?.from.is_premium) {
+      if (message?.from.is_premium) {
         spamScore++;
       }
     }
 
-    this.updateMemberStats(ctx.message?.from, spamScore);
+    this.updateMemberStats(message?.from, spamScore);
 
     if (spamScore > 0) {
       // Check if admin
-      if (await this.isAdmin(ctx, ctx.message?.from)) {
+      if (await this.isAdmin(ctx, message?.from)) {
         return;
       }
 
