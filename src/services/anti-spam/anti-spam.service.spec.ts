@@ -217,7 +217,7 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalled();
   });
 
-  it('should ban spammer who used restricted word #9', async () => {
+  it('should ban spammer who used restricted word #10', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
 
