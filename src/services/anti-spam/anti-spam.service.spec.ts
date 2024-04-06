@@ -234,6 +234,44 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalled();
   });
 
+  it('should not delete messages from admin', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    jest.spyOn(ctxMock, 'getChatMember').mockResolvedValue({
+      status: 'administrator',
+    } as any);
+
+    await addNewChatMembers();
+
+    for (let i = 0; i < 2; i++) {
+      await telegrafMock.triggerUpdate('message', {
+        text: 'test invest into my stuff',
+        from: {id: 1, username: 'test1'},
+      } as Message.TextMessage);
+    }
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(0);
+    expect(ctxMock.banChatMember).toBeCalledTimes(0);
+  });
+
+  it('should not delete messages from admin #2', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    for (let i = 0; i < 2; i++) {
+      await telegrafMock.triggerUpdate('message', {
+        text: 'test invest into my stuff',
+        from: {id: 1, is_bot: true, username: 'GroupAnonymousBot'},
+      } as Message.TextMessage);
+    }
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(0);
+    expect(ctxMock.banChatMember).toBeCalledTimes(0);
+  });
+
   it('should ban spammer who has premium account after single message', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
