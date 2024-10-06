@@ -1,0 +1,7 @@
+services:
+  telegram-bot-gggs:
+    container_name: telegram-bot-gggs
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
