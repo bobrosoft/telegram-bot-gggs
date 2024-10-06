@@ -96,4 +96,7 @@ export const groupStopWords: Array<string | RegExp> = [
   /икр[ауы]\s/,
   'меховых изделий',
   'меховой компании',
+  'clubrain',
+  'cyber club',
+  'компьютерный клуб',
 ];
