@@ -107,6 +107,11 @@ export class AntiSpamService extends BaseCommandService {
         if (ruMatches.length > 2 && enMatches.find(match => match[0].match(/[aopecu]/))) {
           return true;
         }
+
+        // Check if word has characters from "Greek and Coptic" Unicode block
+        if (word.match(/[\u0370-\u03FF]/)) {
+          return true;
+        }
       })
     ) {
       return true;
