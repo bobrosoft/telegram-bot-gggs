@@ -9,3 +9,4 @@ cd ..
 git restore .
 git pull
 docker compose up --build -d
+log.sh 0
