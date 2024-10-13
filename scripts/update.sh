@@ -8,4 +8,4 @@ cd ..
 
 git restore .
 git pull
-docker compose up --build
+docker compose up --build -d
