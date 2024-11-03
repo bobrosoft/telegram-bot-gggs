@@ -3,6 +3,6 @@ services:
     container_name: telegram-bot-gggs
     build:
       context: .
-      restart: always
+    restart: always
     environment:
       NODE_ENV: production
