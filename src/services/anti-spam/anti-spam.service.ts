@@ -40,7 +40,7 @@ export class AntiSpamService extends BaseCommandService {
 
     if (await this.isSpammer(ctx, user)) {
       this.log(`ban ${user.username}(ID: ${user.id}) with banIfSpammer`);
-      await ctx.banChatMember(user.id, undefined, {revoke_messages: true});
+      await ctx.banChatMember(user.id, undefined, {revoke_messages: true}).catch(e => console.error(e));
     }
   }
 
@@ -155,7 +155,7 @@ export class AntiSpamService extends BaseCommandService {
       //
       /@|http|httр|www/, // second is with RUS "р"
       /love|sex|секс|секас|попочку|интим|эроти|игривое/,
-      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб|работ[аук].*возраст|работ[аук].*\d+р|пла[чт].*\d+|на\s+карту/,
+      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб|работ[аук].*возраст|работ[аук].*\d+р|пла[чт].*\d+|на\s+карту|\d+\s+бакс|это\s+касается\s+каждого/,
       /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|зарплат|заработн\.*плат|зарабат|заработать|город.*лс|заработк|заработо/,
       /нужны люди|национальноc/,
     ].forEach(regex => {
@@ -184,7 +184,7 @@ export class AntiSpamService extends BaseCommandService {
         return;
       }
 
-      await (ctx as Context<any>).deleteMessage();
+      await (ctx as Context<any>).deleteMessage().catch();
       await this.banIfSpammer(ctx);
     }
   }
