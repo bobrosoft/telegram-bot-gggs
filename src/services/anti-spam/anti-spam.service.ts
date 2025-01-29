@@ -121,71 +121,75 @@ export class AntiSpamService extends BaseCommandService {
   }
 
   protected async processNewMessage(message: Message, ctx: Context<Update.MessageUpdate<Message>>) {
-    console.log('message', message);
+    try {
+      console.log('message', message);
 
-    let spamScore = 0;
-    let text = ((message as Message.TextMessage)?.text || '').toLowerCase().trim();
+      let spamScore = 0;
+      let text = ((message as Message.TextMessage)?.text || '').toLowerCase().trim();
 
-    if (this.isContainMaliciousSubstitutions(text)) {
-      this.log('contains malicious chars substitutions');
-      spamScore++;
-    }
-
-    // If bot repost
-    if ((message as any).via_bot || (message as any).forward_from?.is_bot) {
-      spamScore += 2;
-    }
-
-    // // Additional filtering
-    text = text
-      .replace('0', 'o') //
-      .replace('o', 'о')
-      .replace('a', 'а')
-      .replace('p', 'р')
-      .replace('c', 'с'); // to RUS "с"
-
-    // Check if video with links attached or using formatting (unusual behavior)
-    if ((message as any)?.caption_entities?.length || (message as any)?.entities?.length) {
-      spamScore++;
-      this.log(`matched caption_entities`);
-    }
-
-    // Check stop-words
-    [
-      //
-      /@|http|httр|www/, // second is with RUS "р"
-      /love|sex|секс|секас|попочку|интим|эроти|игривое/,
-      /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб|работ[аук].*возраст|работ[аук].*\d+р|пла[чт].*\d+|на\s+карту|\d+\s+бакс|это\s+касается\s+каждого/,
-      /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|зарплат|заработн\.*плат|зарабат|заработать|город.*лс|заработк|заработо/,
-      /нужны люди|национальноc/,
-    ].forEach(regex => {
-      if (text.match(regex)) {
-        spamScore++;
-        this.log(`matched ${regex}`);
-      }
-    });
-
-    if (!message?.from) {
-      return;
-    }
-
-    // A lot of spammers have premium accounts
-    if (spamScore > 0) {
-      if (message?.from.is_premium) {
+      if (this.isContainMaliciousSubstitutions(text)) {
+        this.log('contains malicious chars substitutions');
         spamScore++;
       }
-    }
 
-    this.updateMemberStats(message?.from, spamScore);
+      // If bot repost
+      if ((message as any).via_bot || (message as any).forward_from?.is_bot) {
+        spamScore += 2;
+      }
 
-    if (spamScore > 0) {
-      // Check if admin
-      if (await this.isAdmin(ctx, message?.from)) {
+      // // Additional filtering
+      text = text
+        .replace('0', 'o') //
+        .replace('o', 'о')
+        .replace('a', 'а')
+        .replace('p', 'р')
+        .replace('c', 'с'); // to RUS "с"
+
+      // Check if video with links attached or using formatting (unusual behavior)
+      if ((message as any)?.caption_entities?.length || (message as any)?.entities?.length) {
+        spamScore++;
+        this.log(`matched caption_entities`);
+      }
+
+      // Check stop-words
+      [
+        //
+        /@|http|httр|www/, // second is with RUS "р"
+        /love|sex|секс|секас|попочку|интим|эроти|игривое/,
+        /работ[аук].*cутк|работ[аук].*зп|работ[аук].*руб|работ[аук].*возраст|работ[аук].*\d+р|пла[чт].*\d+|на\s+карту|\d+\s+бакс|это\s+касается\s+каждого/,
+        /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|зарплат|заработн\.*плат|зарабат|заработать|город.*лс|заработк|заработо/,
+        /нужны люди|национальноc/,
+      ].forEach(regex => {
+        if (text.match(regex)) {
+          spamScore++;
+          this.log(`matched ${regex}`);
+        }
+      });
+
+      if (!message?.from) {
         return;
       }
 
-      await (ctx as Context<any>).deleteMessage().catch();
-      await this.banIfSpammer(ctx);
+      // A lot of spammers have premium accounts
+      if (spamScore > 0) {
+        if (message?.from.is_premium) {
+          spamScore++;
+        }
+      }
+
+      this.updateMemberStats(message?.from, spamScore);
+
+      if (spamScore > 0) {
+        // Check if admin
+        if (await this.isAdmin(ctx, message?.from)) {
+          return;
+        }
+
+        await (ctx as Context<any>).deleteMessage().catch();
+        await this.banIfSpammer(ctx);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 
