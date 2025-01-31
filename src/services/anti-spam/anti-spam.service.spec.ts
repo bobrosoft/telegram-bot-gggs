@@ -234,6 +234,23 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalled();
   });
 
+  it('should ban spammer who used restricted word #11', async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    for (let i = 0; i < 2; i++) {
+      await telegrafMock.triggerUpdate('message', {
+        text: `Приветствую! Приглашаем Вас на новый проект для сотрудничества на удалёнке, занимает мало времени + хороший доп.доход., от 870$ в неделю\nПиши + в личку`,
+        from: {id: 1, username: 'test1'},
+      } as Message.TextMessage);
+    }
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(2);
+    expect(ctxMock.banChatMember).toBeCalled();
+  });
+
   it('should not delete messages from admin', async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
