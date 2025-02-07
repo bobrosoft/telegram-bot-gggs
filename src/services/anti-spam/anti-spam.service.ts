@@ -151,6 +151,12 @@ export class AntiSpamService extends BaseCommandService {
         this.log(`matched caption_entities`);
       }
 
+      // Check if have reply keyboards or special markup
+      if ((message as any)?.reply_markup) {
+        spamScore++;
+        this.log(`matched reply_markup`);
+      }
+
       // Check stop-words
       [
         //
@@ -158,6 +164,7 @@ export class AntiSpamService extends BaseCommandService {
         /love|sex|секс|секас|попочку|интим|эроти|игривое/,
         /работ[аук].*?cутк|работ[аук].*?зп|работ[аук].*?руб|работ[аук].*?возраст|работ[аук].*?\d+р|пла[чт].*?\d+|на\s+карту|\d+\s+бакс|это\s+касается\s+каждого/,
         /\$.*?день|\$.*?недел/,
+        /казино|выпал.*?бонус/,
         /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|зарплат|заработн\.*?плат|зарабат|заработать|город.*?лс|заработк|заработо/,
         /нужны люди|национальноc/,
       ].forEach(regex => {

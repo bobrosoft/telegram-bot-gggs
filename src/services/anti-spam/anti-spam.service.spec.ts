@@ -525,6 +525,24 @@ describe('AntiSpamService', () => {
     expect(ctxMock.banChatMember).toBeCalledTimes(1);
   });
 
+  it(`should ban spammer who used keyboards or special markup`, async () => {
+    jest.spyOn(ctxMock, 'deleteMessage');
+    jest.spyOn(ctxMock, 'banChatMember');
+
+    await addNewChatMembers();
+
+    for (let i = 0; i < 2; i++) {
+      await telegrafMock.triggerUpdate('message', {
+        from: {id: 1, username: 'test1'},
+        text: 'test',
+        reply_markup: [{}, {}],
+      });
+    }
+
+    expect(ctxMock.deleteMessage).toBeCalledTimes(2);
+    expect(ctxMock.banChatMember).toBeCalledTimes(1);
+  });
+
   it(`should ban spammer who used formatting`, async () => {
     jest.spyOn(ctxMock, 'deleteMessage');
     jest.spyOn(ctxMock, 'banChatMember');
