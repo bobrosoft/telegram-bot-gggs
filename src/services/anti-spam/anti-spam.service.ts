@@ -40,7 +40,7 @@ export class AntiSpamService extends BaseCommandService {
 
     if (await this.isSpammer(ctx, user)) {
       this.log(`ban ${user.username}(ID: ${user.id}) with banIfSpammer`);
-      await ctx.banChatMember(user.id, undefined, {revoke_messages: true}).catch(e => console.error(e));
+      await ctx.banChatMember(user.id, undefined, {revoke_messages: true}).catch(e => this.logError(e));
     }
   }
 
@@ -57,7 +57,7 @@ export class AntiSpamService extends BaseCommandService {
   protected async isSpammer(ctx: Context, user: User): Promise<boolean> {
     // Check if it in spammer list
     const member = this.findMember(user);
-    console.log(member);
+    this.log(member);
 
     return !!(
       member &&
@@ -122,7 +122,7 @@ export class AntiSpamService extends BaseCommandService {
 
   protected async processNewMessage(message: Message, ctx: Context<Update.MessageUpdate<Message>>) {
     try {
-      console.log('message', message);
+      this.log('message', message);
 
       let spamScore = 0;
       let text = ((message as Message.TextMessage)?.text || '').toLowerCase().trim();
@@ -198,7 +198,7 @@ export class AntiSpamService extends BaseCommandService {
         await this.banIfSpammer(ctx);
       }
     } catch (e) {
-      console.error(e);
+      this.logError(e);
     }
   }
 

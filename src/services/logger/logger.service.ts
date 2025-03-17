@@ -1,10 +1,15 @@
 export class LoggerService {
-  log(service: string, message: string) {
+  log(service: string, ...data: any[]) {
     console.log(
       `${new Date()
         //
         .toLocaleString('ru-RU', {timeZone: 'Europe/Samara'})
-        .replace(/,\s/g, ' ')} [${service}] ${message}`,
+        .replace(/,\s/g, ' ')} [${service}]`,
+      ...data,
     );
+  }
+
+  error(service: string, ...data: any[]) {
+    this.log(service, '[ERROR]', ...data);
   }
 }
