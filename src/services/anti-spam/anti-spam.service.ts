@@ -109,7 +109,7 @@ export class AntiSpamService extends BaseCommandService {
         }
 
         // Check if word has characters from "Greek and Coptic" Unicode block
-        if (word.match(/[\u0370-\u03FF]/)) {
+        if (word.match(/[\u0370-\u03FF\u1D00-\u1D7F]/)) {
           return true;
         }
       })
