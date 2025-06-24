@@ -8,6 +8,7 @@ import {Config} from '../../models/config.model';
 import {VKAttachment, VkPost} from '../../models/vk-post.model';
 import {BaseCommandService} from '../base-command.service';
 import {LoggerService} from '../logger/logger.service';
+import {stopAuthors} from './stop-authors';
 import testData from './testData.json';
 import {commonStopWords, groupStopWords, userStopWords} from './stop-words';
 
@@ -95,7 +96,7 @@ export class VkReposterService extends BaseCommandService {
 
     const messages = posts
       .filter(post => (skipOldPosts ? this.isNewPost(post) : true))
-      .filter(post => this.isPostAllowed(post))
+      .filter(post => this.isPostAllowed(post, authors))
       .map(post => this.convertPostToMessage(post, authors));
 
     for (const message of messages) {
@@ -105,7 +106,7 @@ export class VkReposterService extends BaseCommandService {
         if (message.imageUrls?.length) {
           if (message.imageUrls?.length === 1) {
             await this.bot.telegram.sendPhoto(chatId, message.imageUrls[0], {
-              caption: message.text.substr(0, 1010),
+              caption: message.text.substring(0, 1010),
               parse_mode: 'HTML',
             });
           } else {
@@ -114,13 +115,13 @@ export class VkReposterService extends BaseCommandService {
               message.imageUrls.map((imageUrl, index) => ({
                 type: 'photo',
                 media: {url: imageUrl},
-                caption: index === 0 ? message.text.substr(0, 1010) : undefined,
+                caption: index === 0 ? message.text.substring(0, 1010) : undefined,
                 parse_mode: index === 0 ? 'HTML' : undefined,
               })),
             );
           }
         } else {
-          await this.bot.telegram.sendMessage(chatId, message.text.substr(0, 4000), {
+          await this.bot.telegram.sendMessage(chatId, message.text.substring(0, 4000), {
             parse_mode: 'HTML',
             disable_web_page_preview: true,
           });
@@ -136,7 +137,7 @@ export class VkReposterService extends BaseCommandService {
     return !this.recentPostIds.includes(post.id);
   }
 
-  protected isPostAllowed(post: VkPost): boolean {
+  protected isPostAllowed(post: VkPost, authors: Author[]): boolean {
     const isGroupPost = post.from_id < 0;
 
     // Skip ads
@@ -146,6 +147,13 @@ export class VkReposterService extends BaseCommandService {
 
     // Skip reposts
     if (post.copy_history) {
+      return false;
+    }
+
+    // Check for author
+    const author = this.getAuthorForPost(post, authors);
+    if (author && stopAuthors.find(name => author.name.match(name))) {
+      this.log(`Skipping post from author "${author.name}" (ID: ${author.id})`);
       return false;
     }
 
@@ -176,7 +184,7 @@ export class VkReposterService extends BaseCommandService {
   }
 
   protected convertPostToMessage(post: VkPost, authors: Author[]): Message {
-    const author = authors.find(a => a.id === post.from_id) || authors.find(a => a.id === post.owner_id);
+    const author = this.getAuthorForPost(post, authors);
     const attachments: VKAttachment[] = (post.attachments || []).filter(a =>
       ['photo', 'video', 'doc'].includes(a.type),
     );
@@ -217,9 +225,13 @@ export class VkReposterService extends BaseCommandService {
     return {
       postId: post.id,
       text,
-      debugText: post.text.substr(0, 20).replace(/[\n\t]/g, ''),
+      debugText: post.text.substring(0, 20).replace(/[\n\t]/g, ''),
       imageUrls: photoUrls,
     };
+  }
+
+  protected getAuthorForPost(post: VkPost, authors: Author[]): Author | undefined {
+    return authors.find(a => a.id === post.from_id) || authors.find(a => a.id === post.owner_id);
   }
 
   protected async onTestRepost() {
