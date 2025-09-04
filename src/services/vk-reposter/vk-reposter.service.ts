@@ -50,7 +50,7 @@ export class VkReposterService extends BaseCommandService {
     this.log('checkForNewPosts');
 
     try {
-      const data = await fetch('https://api.vk.com/method/wall.get', {
+      const data = await fetch('https://api.vk.ru/method/wall.get', {
         method: 'POST',
         body: this.buildBody({
           owner_id: this.config.vkGroupsToCheck[0],
@@ -192,13 +192,13 @@ export class VkReposterService extends BaseCommandService {
 
     let text = this.t('VkReposterService.messageBody', {
       author: author ? author.name : '',
-      url: `https://vk.com/wall${post.owner_id}_${post.id}`,
+      url: `https://vk.ru/wall${post.owner_id}_${post.id}`,
       text: post.text,
     }).trim();
 
     if (videoAttachment?.type === 'video') {
       text += this.t('VkReposterService.messageVideo', {
-        url: `https://vk.com/club${Math.abs(post.owner_id)}?z=video${post.owner_id}_${videoAttachment.video.id}`,
+        url: `https://vk.ru/club${Math.abs(post.owner_id)}?z=video${post.owner_id}_${videoAttachment.video.id}`,
       });
     }
 
