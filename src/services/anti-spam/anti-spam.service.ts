@@ -143,7 +143,8 @@ export class AntiSpamService extends BaseCommandService {
         .replace('o', 'о')
         .replace('a', 'а')
         .replace('p', 'р')
-        .replace('c', 'с'); // to RUS "с"
+        .replace('c', 'с') // to RUS "с"
+        .replace(/[.,\/—\-]/, ' '); // remove some symbols
 
       // Check if video with links attached or using formatting (unusual behavior)
       if ((message as any)?.caption_entities?.length || (message as any)?.entities?.length) {
@@ -163,11 +164,12 @@ export class AntiSpamService extends BaseCommandService {
         /@|http|httр|www/, // second is with RUS "р"
         /love|sex|секс|секас|попочку|интим|эроти|игривое/,
         /работ[аук].*?cутк|работ[аук].*?зп|работ[аук].*?руб|работ[аук].*?возраст|работ[аук].*?\d+р|пла[чт].*?\d+|на\s+карту|\d+\s+бакс|это\s+касается\s+каждого/,
-        /\$.*?день|\$.*?недел|руб.*?день/,
+        /\$.*?день|\$.*?недел|руб.*?день|гибкий.*?график/,
         /казино|выпал.*?бонус/,
         /рабоч|патент|оплата|денег|деньг|crypto|invest|зп|зарплат|заработн\.*?плат|зарабат|заработать|город.*?лс|заработк|заработо/,
         /прибыль|сотрудничеств|проект.*?доход/,
         /нужны люди|требуются люди|национальноc/,
+        /снюс|фото.*?кустов|фасовщик|фасовк.*?\d+/,
       ].forEach(regex => {
         if (text.match(regex)) {
           spamScore++;

@@ -35,7 +35,7 @@ export const groupStopWords: Array<string | RegExp> = [
   'объявления',
   'voen',
   'займ',
-  'инн\s+\d{5}',
+  'иннs+d{5}',
   //
   'вакансия',
   'требуются',
@@ -101,4 +101,6 @@ export const groupStopWords: Array<string | RegExp> = [
   'clubrain',
   'cyber club',
   'компьютерный клуб',
+  'глазную клинику',
+  'глазная клиника',
 ];
